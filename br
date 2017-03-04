@@ -1,0 +1,355 @@
+#!/bin/env python
+
+import os
+import sys
+import datetime
+
+import docutils
+from docutils.frontend import OptionParser
+from docutils.utils import new_document
+from docutils.parsers.rst import Parser
+
+try:
+    import dateutil.parser
+except ImportError:
+    print("python-dateutil package not installed, start & stop commands will not work!")
+
+BUGFILE = 'bugs.rst'
+DONEFILE = 'fixed_bugs.rst'
+DEBUG = False
+TIMER_ATOM = 3600 # number of seconds to add "1" to timer, defaults to 1h
+
+def now(iso=True):
+    r = datetime.datetime.now()
+    if iso:
+        r = r.isoformat().rsplit('.', 1)[0]
+    return r
+
+# For later if needed ? to create documents from nodes...
+# http://agateau.com/2015/docutils-snippets/
+
+class Bug:
+    def __init__(self, title):
+        self.title = title
+        self.description = ''
+        self.comments = []
+        self.attributes = {}
+
+    @property
+    def started(self):
+        return 'started' in self.attributes
+
+    def to_rst(self):
+        r = []
+        r.append(self.title)
+        r.append("#"*len(self.title))
+        r.append('')
+        for k, v in self.attributes.items():
+            r.append(':%s: %s'%(k, v))
+        r.append('')
+        r.append(self.description)
+        r.append('')
+        for com in self.comments:
+            title, txt = com.split('\n\n', 1)
+            r.append(title)
+            for line in txt.split('\n'):
+                r.append('    ' + line)
+            if com != self.comments[-1]:
+                r.append('')
+
+        return '\n'.join(r)
+
+    def __str__(self):
+        r = []
+        r.append(self.title)
+        r.append("#"*len(self.title))
+        r.append('')
+        for k, v in self.attributes.items():
+            r.append(':%s: %s'%(k, v))
+        r.append('')
+        r.append(self.description)
+        r.append('')
+        r.append('Comments')
+        r.append('='*len('Comments'))
+        r.append('')
+        for com in self.comments:
+            com, desc = com.split('\n\n', 1)
+            r.append(com)
+            r.append("-"*len(com))
+            r.append('')
+            r.append(desc)
+            if com != self.comments[-1]:
+                r.append('')
+        if not self.comments:
+            r.append('No comment')
+
+        return '\n'.join(r)
+
+    @property
+    def priority(self):
+        return int(self.attributes['priority'])
+
+    def __delitem__(self, name):
+        del self.attributes[name]
+
+    def __getitem__(self, name):
+        return self.attributes.get(name)
+
+    def __setitem__(self, name, val):
+        self.attributes[name.strip().lower()] = str(val).strip()
+
+    def add_comment(self, text, suffix='\n'):
+        self.comments.append(text.strip()+suffix)
+
+    def append_comment(self, text, suffix=''):
+        self.comments[-1] += '\n' + text.strip() + suffix
+
+    def append_description(self, text, prefix='\n\n', suffix=''):
+        if self.description:
+            self.description += prefix + text.strip() + suffix
+        else:
+            self.description = prefix + text.strip() + suffix
+
+class Visitor(docutils.nodes.GenericNodeVisitor):
+
+    def __init__(self, doc, sink, first_special=False):
+        docutils.nodes.GenericNodeVisitor.__init__(self, doc)
+        self.sink = sink
+        if first_special is False:
+            self.heading_bugs = 0
+        else:
+            self.special_sink = first_special
+            self.heading_bugs = 1
+
+    def visit_title(self, node):
+        if self.heading_bugs:
+            self.heading_bugs -= 1
+            self.current_bug = Bug(node.astext())
+            self.special_sink.append(self.current_bug)
+        else:
+            self.current_bug = Bug(node.astext())
+            self.sink.append(self.current_bug)
+        self.skip_paragraphs = 0
+        self.commenting = False
+
+    def visit_list_item(self, node): # list somewhere (comment or description)
+        if self.commenting:
+            self.current_bug.append_comment(" - " + node.astext())
+        else:
+            self.current_bug.append_description(" * " + node.rawsource, prefix='\n', suffix='')
+        self.skip_paragraphs += 1
+
+    def visit_field(self, node): # attributes
+        self.current_bug[node.children[0].astext()] = node.children[1].astext()
+        self.skip_paragraphs += 1
+
+    def visit_transition(self, node): # bug separator
+        return
+
+    def visit_paragraph(self, node): # generic text
+        if self.skip_paragraphs:
+            self.skip_paragraphs -= 1
+        else:
+            if self.commenting:
+                self.current_bug.append_comment(node.rawsource, suffix='\n')
+            else:
+                self.current_bug.append_description(node.rawsource, suffix='\n\n')
+
+    def visit_definition_list_item(self, node): # comment
+        self.commenting = True
+        self.current_bug.add_comment(node.children[0].rawsource)
+
+    def default_visit(self, node):
+        if DEBUG:
+            print("=", node.tagname)
+
+class FileHandler:
+
+    bugs = []
+    fixed_bugs = []
+    bugs_info = []
+
+    def __init__(self):
+        self.load()
+
+    @property
+    def info(self):
+        return self.bugs_info[-1]
+
+    def get(self, nr):
+        return self.bugs[nr]
+
+    def save(self, done=False):
+        if done:
+            fname = DONEFILE
+            source = self.fixed_bugs
+        else:
+            fname = BUGFILE
+            source = self.bugs_info + self.bugs
+
+        data = []
+        for i, bug in enumerate(source):
+            data.append(bug.to_rst())
+            if i+1 != len(source):
+                data.append("\n\n%s\n\n"%("-"*80)) # separator
+        # save only if didn't except before
+        o = open(fname, 'w')
+        o.writelines(data)
+        o.close()
+
+    def load(self, done=False):
+        if done:
+            fname = DONEFILE
+            source = self.fixed_bugs
+        else:
+            fname = BUGFILE
+            source = self.bugs
+
+        if os.path.exists(fname):
+            parser = Parser()
+            settings = OptionParser(components=(Parser,)).get_default_values()
+            document = new_document(BUGFILE, settings)
+            text = open(fname).read()
+            parser.parse(text, document)
+            if done:
+                visitor = Visitor(document, source)
+            else:
+                visitor = Visitor(document, source, first_special=self.bugs_info)
+            document.walk(visitor)
+            if not done: # sort bugs
+                source.sort(key=lambda x: -x.priority)
+
+        if not self.bugs_info:
+            self.bugs_info.append( Bug('Bugz') )
+            self.info['count'] = 0
+
+    def new_bug(self, bug):
+        self.bugs.append(bug)
+        self.info['count'] = int(self.info['count']) + 1
+        self.save()
+
+    def mark_started(self, bugid):
+        bug = self.get(bugid)
+        bug['started'] = now()
+        self.save()
+
+    def mark_stopped(self, bugid):
+        if isinstance(bugid, int):
+            bug = self.get(bugid)
+        else:
+            bug = bugid
+        if bug['started']:
+            if not bug['timer']:
+                old = 0
+            else:
+                old = int(bug['timer'])
+
+            last_date = dateutil.parser.parse( bug['started'] )
+            old += ((now(False) - last_date).seconds/TIMER_ATOM)
+            del bug['started']
+            bug['timer'] = int(old)
+            self.save()
+        else:
+            print('Already stopped')
+
+    def mark_fixed(self, bugid):
+        bug = self.bugs.pop(bugid)
+        if bug['started']:
+            self.mark_stopped(bug)
+        bug['fixed'] = now()
+        self.fixed_bugs.insert(0, bug)
+        self.info['count'] = int(self.info['count']) - 1
+        self.save()
+        self.save(True)
+
+    def __iter__(self):
+        return iter(self.bugs)
+
+    def __len__(self):
+        return len(self.bugs)
+
+handler = FileHandler()
+
+if __name__ == '__main__':
+
+    try:
+        cmd = sys.argv[1]
+    except IndexError:
+        cmd = 'list'
+    if cmd == 'list' or cmd == 'ls':
+        for i, bug in enumerate(handler):
+            print("%s%4d - %s"%(bug.started and 'X>' or '  ', i+1, bug.title))
+    elif cmd.startswith('show'):
+        try:
+            nr = int(sys.argv[2])-1
+        except IndexError:
+            nr = None
+
+        if nr is not None:
+            print(handler.get(nr))
+        else:
+            for i, bug in enumerate(handler):
+                print(bug)
+                if i+1 != len(handler):
+                    print("\n%s\n"%("-"*80))
+    elif cmd == 'start':
+        try:
+            nr = int(sys.argv[2])
+        except IndexError:
+            nr = input('nr: ')
+        handler.mark_started(int(nr)-1)
+    elif cmd == 'stop':
+        try:
+            nr = int(sys.argv[2])
+        except IndexError:
+            nr = input('nr: ')
+        handler.mark_stopped(int(nr)-1)
+    elif cmd == 'del' or cmd == 'rm':
+        try:
+            nr = int(sys.argv[2])
+        except IndexError:
+            nr = input('nr: ')
+        handler.load(True) # loads current fixed bugs list too
+        handler.mark_fixed(int(nr)-1)
+    elif cmd == 'add':
+        try:
+            nr = int(sys.argv[2])
+        except IndexError:
+            nr = input('nr: ')
+        bug = handler.get(nr-1)
+
+        description = input('Title: ')
+        bug.add_comment(description)
+        for n in range(200):
+            description = input('Comment: ')
+            if not description:
+                break
+            if description[0] in '*-':
+                bug.append_comment(description, suffix='')
+            else:
+                bug.append_comment(description)
+        handler.save()
+    elif cmd == 'new':
+        title = input('Title: ')
+        bug = Bug(title)
+        for n in range(200):
+            description = input('Description: ')
+            if not description:
+                break
+            bug.append_description(description)
+        bug['priority'] = '0'
+        bug['bugid'] = handler.info['count']
+        bug['created'] = now()
+        handler.new_bug(bug)
+    elif cmd == 'help':
+        print("""
+Commands:
+    list: short listing of bugs
+    show: detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
+     new: open a new bug
+      rm: remove some bug (mark as fixed)
+     add: add some comment to a bug
+   start: starts counting elapsed time for this bug
+    stop: stops counting elapsed time for this bug
+                """)
+
