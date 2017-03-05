@@ -47,7 +47,7 @@ class Bug:
         for k, v in self.attributes.items():
             r.append(':%s: %s'%(k, v))
         r.append('')
-        r.append(self.description)
+        r.append(self.description.strip().replace('\n\n\n', '\n\n').replace('\n\n\n', '\n\n')) # Super ugly fix 
         r.append('')
         for com in self.comments:
             title, txt = com.split('\n\n', 1)
@@ -336,7 +336,7 @@ if __name__ == '__main__':
             description = input('Description: ')
             if not description:
                 break
-            bug.append_description(description)
+            bug.append_description(description) # FIXME: parse rst instead of generating bug manually
         bug['priority'] = '0'
         bug['bugid'] = handler.info['count']
         bug['created'] = now()
