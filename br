@@ -191,7 +191,7 @@ class FileHandler:
         for i, bug in enumerate(source):
             data.append(bug.to_rst())
             if i+1 != len(source):
-                data.append("\n\n%s\n\n"%("-"*80)) # separator
+                data.append("\n\n%s\n\n"%("-"*80)) # separator on single line
         # save only if didn't except before
         o = open(fname, 'w')
         o.writelines(data)
