@@ -344,12 +344,22 @@ if __name__ == '__main__':
     elif cmd == 'help':
         print("""
 Commands:
-    list: short listing of bugs
+    list: short listing of bugs (default action)
     show: detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
      new: open a new bug
       rm: remove some bug (mark as fixed)
      add: add some comment to a bug
    start: starts counting elapsed time for this bug
     stop: stops counting elapsed time for this bug
-                """)
+
+Examples:
+user@host:~$ %(prog)s
+   10  - red looks green
+   21  - missing image
+   37  - doc needs review
+user@host:~$ echo -e "test bug\\nsimple description\\n" | %(prog)s new
+user@host:~$ %(prog)s show | rst2html > buglist.html
+user@host:~$ echo "Fixed in #4242" | %(prog)s add 21 && %(prog)s rm 21
+                """%dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
+
 
