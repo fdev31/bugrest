@@ -101,8 +101,8 @@ class Bug:
     def add_comment(self, text, suffix='\n'):
         self.comments.append(text.strip()+suffix)
 
-    def append_comment(self, text, suffix=''):
-        self.comments[-1] += '\n' + text.strip() + suffix
+    def append_comment(self, text, suffix='', prefix='\n'):
+        self.comments[-1] += prefix + text.strip() + suffix
 
     def append_description(self, text, prefix='\n\n', suffix=''):
         if self.description:
@@ -124,17 +124,17 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
     def visit_title(self, node):
         if self.heading_bugs:
             self.heading_bugs -= 1
-            self.current_bug = Bug(node.astext())
+            self.current_bug = Bug(node.rawsource.strip())
             self.special_sink.append(self.current_bug)
         else:
-            self.current_bug = Bug(node.astext())
+            self.current_bug = Bug(node.rawsource.strip())
             self.sink.append(self.current_bug)
         self.skip_paragraphs = 0
         self.commenting = False
 
     def visit_list_item(self, node): # list somewhere (comment or description)
         if self.commenting:
-            self.current_bug.append_comment(" - " + node.astext())
+            self.current_bug.append_comment(" - " + node.rawsource.strip(), suffix='\n', prefix='')
         else:
             self.current_bug.append_description(" * " + node.rawsource, prefix='\n', suffix='')
         self.skip_paragraphs += 1
@@ -151,9 +151,9 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
             self.skip_paragraphs -= 1
         else:
             if self.commenting:
-                self.current_bug.append_comment(node.rawsource, suffix='\n')
+                self.current_bug.append_comment(node.rawsource.strip(), suffix='\n\n')
             else:
-                self.current_bug.append_description(node.rawsource, suffix='\n\n')
+                self.current_bug.append_description(node.rawsource.strip(), suffix='\n\n')
 
     def visit_definition_list_item(self, node): # comment
         self.commenting = True
