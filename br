@@ -318,25 +318,37 @@ if __name__ == '__main__':
             nr = input('nr: ')
         bug = handler.get(nr-1)
 
-        description = input('Title: ')
+        description = input('Title: ').strip()
         bug.add_comment(description)
+        blanklines = 0
         for n in range(200):
-            description = input('Comment: ')
+            description = input('Comment: ').strip()
             if not description:
-                break
+                blanklines += 1
+                if blanklines == 2:
+                    break
+                bug.append_comment('') # add blank line
+                continue
+            blanklines = 0
             if description[0] in '*-':
                 bug.append_comment(description, suffix='')
             else:
                 bug.append_comment(description)
         handler.save()
     elif cmd == 'new':
-        title = input('Title: ')
+        title = input('Title: ').strip()
         bug = Bug(title)
+        blanklines = 0
         for n in range(200):
-            description = input('Description: ')
+            description = input('Description: ').strip()
             if not description:
-                break
-            bug.append_description(description) # FIXME: parse rst instead of generating bug manually
+                blanklines += 1
+                if blanklines == 2:
+                    break
+                bug.append_description('', prefix='\n') # add blank line
+                continue
+            blanklines = 0
+            bug.append_description(description, prefix='\n') # FIXME: parse rst instead of generating bug manually
         bug['priority'] = '0'
         bug['bugid'] = handler.info['count']
         bug['created'] = now()
