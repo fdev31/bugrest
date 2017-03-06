@@ -1,7 +1,7 @@
-Bugz
-####
+*Bugrest* bug list
+##################
 
-:count: 4
+:count: 5
 
 
 
@@ -55,3 +55,22 @@ add type field for bugs (improvement, addition, bug, critical or proposal)
 :created: 2017-03-04T02:03:16.081361
 
 ...
+
+
+--------------------------------------------------------------------------------
+
+Allow tags to be set on bugs
+############################
+
+:priority: 0
+:bugid: 4
+:created: 2017-03-06T23:40:51
+:tags: #foo #foobar #fouyaya red #tags are fun
+
+Let's say something like this one
+
+Also:
+
+* add command to add a tag (``tag`` ?)
+* add command to search, using the " any pattern " tag: blah
+
