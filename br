@@ -39,6 +39,14 @@ class Bug:
     def started(self):
         return 'started' in self.attributes
 
+    def string_as_list(self):
+        return "%s%4d -%s- %s"%(
+                self.started and 'X>' or '  ',
+                i+1,
+                self['tags'].replace('#',' ').center(20, '-'),
+                self.title,
+                )
+
     def to_rst(self):
         r = []
         r.append(self.title)
@@ -85,6 +93,21 @@ class Bug:
 
         return '\n'.join(r)
 
+    def add_tag(self, tagname):
+        mytags = self['tags'].split('#')
+        tags = set(x.strip() for x in mytags if x)
+        tags.add(tagname)
+        self['tags'] = '#' + '#'.join(tags)
+
+    def rm_tag(self, tagname):
+        mytags = self['tags'].split('#')
+        tags = set(x.strip() for x in mytags if x)
+        tags.remove(tagname)
+        if tags:
+            self['tags'] = '#' + '#'.join(tags)
+        else:
+            self['tags'] = ''
+
     @property
     def priority(self):
         return int(self.attributes['priority'])
@@ -93,7 +116,7 @@ class Bug:
         del self.attributes[name]
 
     def __getitem__(self, name):
-        return self.attributes.get(name)
+        return self.attributes.get(name, '')
 
     def __setitem__(self, name, val):
         self.attributes[name.strip().lower()] = str(val).strip()
@@ -272,16 +295,24 @@ handler = FileHandler()
 
 if __name__ == '__main__':
 
+
     try:
         cmd = sys.argv[1]
     except IndexError:
         cmd = 'list'
+    else:
+        args = sys.argv[2:]
+
     if cmd == 'list' or cmd == 'ls':
         for i, bug in enumerate(handler):
-            print("%s%4d - %s"%(bug.started and 'X>' or '  ', i+1, bug.title))
+            print(bug.string_as_list())
+    if cmd.startswith('prio'):
+        prio = int(args[0])
+        for i, bug in enumerate(handler):
+            print(bug.string_as_list())
     elif cmd.startswith('show'):
         try:
-            nr = int(sys.argv[2])-1
+            nr = int(args[0])-1
         except IndexError:
             nr = None
 
@@ -292,28 +323,50 @@ if __name__ == '__main__':
                 print(bug)
                 if i+1 != len(handler):
                     print("\n%s\n"%("-"*80))
+    elif cmd == 'untag':
+        bug_nr = int(args[0])-1
+        tagname = args[1]
+        handler.get(bug_nr).rm_tag(tagname)
+        handler.save()
+    elif cmd == 'tag':
+        try:
+            tagname = args[1]
+        except:
+            tagname = args[0]
+            bug_nr = None
+        else:
+            bug_nr = int(args[0])-1
+
+        if bug_nr is not None:
+            bug = handler.get(bug_nr)
+            bug.add_tag(tagname)
+            handler.save()
+        else:
+            for i, bug in enumerate(handler):
+                if tagname in bug['tags']:
+                    print(bug.string_as_list())
     elif cmd == 'start':
         try:
-            nr = int(sys.argv[2])
+            nr = int(args[0])
         except IndexError:
             nr = input('nr: ')
         handler.mark_started(int(nr)-1)
     elif cmd == 'stop':
         try:
-            nr = int(sys.argv[2])
+            nr = int(args[0])
         except IndexError:
             nr = input('nr: ')
         handler.mark_stopped(int(nr)-1)
     elif cmd == 'del' or cmd == 'rm':
         try:
-            nr = int(sys.argv[2])
+            nr = int(args[0])
         except IndexError:
             nr = input('nr: ')
         handler.load(True) # loads current fixed bugs list too
         handler.mark_fixed(int(nr)-1)
     elif cmd == 'add':
         try:
-            nr = int(sys.argv[2])
+            nr = int(args[0])
         except IndexError:
             nr = input('nr: ')
         bug = handler.get(nr-1)
