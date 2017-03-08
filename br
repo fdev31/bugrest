@@ -295,7 +295,6 @@ handler = FileHandler()
 
 if __name__ == '__main__':
 
-
     try:
         cmd = sys.argv[1]
     except IndexError:
@@ -323,6 +322,16 @@ if __name__ == '__main__':
                 print(bug)
                 if i+1 != len(handler):
                     print("\n%s\n"%("-"*80))
+    elif cmd == 'grep':
+        for i, bug in enumerate(handler):
+            text = str(bug)
+            count = 0
+            for pattern in args:
+                if pattern in text:
+                    count += 1
+            if count == len(args):
+                print(bug.string_as_list())
+
     elif cmd == 'untag':
         bug_nr = int(args[0])-1
         tagname = args[1]
