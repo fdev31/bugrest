@@ -5,7 +5,8 @@ Basic bugtracker that uses a plain text file (*ReStructuredText* compatible) as 
 
 In theory it should run everywhere with Python2 or Python3 available.
 
-See some generated `Bug file <bugrest/files/tip/bugs.rst>`_
+See some generated `Bug file <bugrest/blob/master/bugs.rst>`_
+
 
 Usage
 =====
