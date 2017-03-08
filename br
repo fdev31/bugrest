@@ -25,6 +25,19 @@ def now(iso=True):
         r = r.isoformat().rsplit('.', 1)[0]
     return r
 
+def read_paragraph(prefix=''):
+    blanklines = 0
+    for n in range(200):
+        text = input(prefix)
+        if not text:
+            blanklines += 1
+            if blanklines == 2:
+                break
+            yield ''
+            continue
+        blanklines = 0
+        yield text
+
 # For later if needed ? to create documents from nodes...
 # http://agateau.com/2015/docutils-snippets/
 
@@ -294,7 +307,6 @@ class FileHandler:
 handler = FileHandler()
 
 if __name__ == '__main__':
-
     try:
         cmd = sys.argv[1]
     except IndexError:
@@ -382,36 +394,17 @@ if __name__ == '__main__':
 
         description = input('Title: ').strip()
         bug.add_comment(description)
-        blanklines = 0
-        for n in range(200):
-            description = input('Comment: ').strip()
-            if not description:
-                blanklines += 1
-                if blanklines == 2:
-                    break
-                bug.append_comment('') # add blank line
-                continue
-            blanklines = 0
-            if description[0] in '*-':
-                bug.append_comment(description, suffix='')
+        for line in read_paragraph('Comment: '):
+            if line and line[0] in '*-':
+                bug.append_comment(line, suffix='')
             else:
-                bug.append_comment(description)
+                bug.append_comment(line)
         handler.save()
     elif cmd == 'new':
         title = input('Title: ').strip()
         bug = Bug(title)
-        blanklines = 0
-        for n in range(200):
-            description = input('Description: ').strip()
-            if not description:
-                blanklines += 1
-                if blanklines == 2:
-                    break
-                bug.append_description('', prefix='\n') # add blank line
-                continue
-            blanklines = 0
-            bug.append_description(description, prefix='\n') # FIXME: parse rst instead of generating bug manually
-        bug['priority'] = '0'
+        for line in read_paragraph('Description: '):
+            bug.append_description(line, prefix='\n')
         bug['bugid'] = handler.info['count']
         bug['created'] = now()
         handler.new_bug(bug)
