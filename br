@@ -260,8 +260,10 @@ class FileHandler:
             self.info['count'] = 0
 
     def new_bug(self, bug):
-        self.bugs.append(bug)
+        bug['created'] = now()
+        bug['bugid'] = self.info['count']
         self.info['count'] = int(self.info['count']) + 1
+        self.bugs.append(bug)
         self.save()
 
     def mark_started(self, bugid):
@@ -294,7 +296,6 @@ class FileHandler:
             self.mark_stopped(bug)
         bug['fixed'] = now()
         self.fixed_bugs.insert(0, bug)
-        self.info['count'] = int(self.info['count']) - 1
         self.save()
         self.save(True)
 
