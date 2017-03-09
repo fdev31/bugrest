@@ -406,8 +406,6 @@ if __name__ == '__main__':
         bug = Bug(title)
         for line in read_paragraph('Description: '):
             bug.append_description(line, prefix='\n')
-        bug['bugid'] = handler.info['count']
-        bug['created'] = now()
         handler.new_bug(bug)
     elif cmd == 'help':
         print("""
