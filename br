@@ -130,7 +130,7 @@ class Bug:
 
     @property
     def priority(self):
-        return int(self.attributes['priority'])
+        return int(self.attributes.get('priority', 0))
 
     def __delitem__(self, name):
         del self.attributes[name]
