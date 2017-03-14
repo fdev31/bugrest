@@ -9,6 +9,8 @@ from docutils.frontend import OptionParser
 from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 
+REVERSE_ORDER=True
+
 try:
     raw_input
 except NameError: # if python3
@@ -54,6 +56,10 @@ class Bug:
         self.description = ''
         self.comments = []
         self.attributes = {}
+
+    @property
+    def id(self):
+        return int(self.attributes['bugid'])
 
     @property
     def started(self):
@@ -260,7 +266,13 @@ class FileHandler:
                 visitor = Visitor(document, source, first_special=self.bugs_info)
             document.walk(visitor)
             if not done: # sort bugs
-                source.sort(key=lambda x: -x.priority)
+                if REVERSE_ORDER:
+                    def sorting(x):
+                        return x.priority+1/(1+x.id)
+                else:
+                    def sorting(x):
+                        return x.priority
+                source.sort(key=sorting)
 
         if not self.bugs_info:
             self.bugs_info.append( Bug('Bugz') )
