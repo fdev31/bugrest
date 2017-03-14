@@ -10,6 +10,13 @@ from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 
 try:
+    raw_input
+except NameError: # if python3
+    pass
+else:
+    input = raw_input
+
+try:
     import dateutil.parser
 except ImportError:
     print("python-dateutil package not installed, start & stop commands will not work!")
