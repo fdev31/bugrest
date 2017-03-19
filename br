@@ -387,7 +387,8 @@ if __name__ == '__main__':
     if cmd.startswith('prio'):
         prio = int(args[0])
         for i, bug in enumerate(handler):
-            print(bug.string_as_list())
+            if bug.priority >= prio:
+                print(bug.string_as_list())
     elif cmd.startswith('show'):
         try:
             nr = int(args[0])-1
