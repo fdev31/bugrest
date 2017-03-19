@@ -23,10 +23,28 @@ try:
 except ImportError:
     print("python-dateutil package not installed, start & stop commands will not work!")
 
+CFGFILE = os.path.expanduser('~/.config/bugrest')
+
 BUGFILE = 'bugs.rst'
 DONEFILE = 'fixed_bugs.rst'
 DEBUG = False
+SOURCE_MGR=True
 TIMER_ATOM = 3600 # number of seconds to add "1" to timer, defaults to 1h
+
+if not os.path.exists(CFGFILE):
+    open(CFGFILE, 'w').write('''# sample config, Python syntax
+BUGFILE="%s"
+DONEFILE="%s"
+DEBUG=%s
+SOURCE_MGR=%s
+'''%(
+    BUGFILE,
+    DONEFILE,
+    DEBUG,
+    SOURCE_MGR
+    ))
+
+exec(open(CFGFILE).read())
 
 def now(iso=True):
     r = datetime.datetime.now()
@@ -335,9 +353,27 @@ class FileHandler:
     def __len__(self):
         return len(self.bugs)
 
-handler = FileHandler()
 
 if __name__ == '__main__':
+    if SOURCE_MGR:
+        fold = os.path.abspath(os.path.curdir)
+        found = None
+        current_path = ''
+        for fold in fold.split(os.path.sep):
+            if fold:
+                current_path += fold + os.path.sep
+                # norm
+            else:
+                current_path += os.path.sep
+            for scm in 'svn hg git bzr'.split():
+                if os.path.isdir("%s.%s"%(current_path, scm)):
+                    found = current_path
+        if found:
+            print("chdir", found)
+            os.chdir(found)
+
+    handler = FileHandler()
+
     try:
         cmd = sys.argv[1]
     except IndexError:
@@ -434,8 +470,20 @@ if __name__ == '__main__':
     elif cmd == 'new':
         title = input('Title: ').rstrip()
         bug = Bug(title)
-        for line in read_paragraph('Description: '):
-            bug.append_description(line, prefix='\n')
+        blanklines = 0
+        for n in range(200):
+            description = input('Description: ').strip()
+            if not description:
+                blanklines += 1
+                if blanklines == 2:
+                    break
+                bug.append_description('', prefix='\n') # add blank line
+                continue
+            blanklines = 0
+            bug.append_description(description, prefix='\n') # FIXME: parse rst instead of generating bug manually
+        bug['priority'] = '0'
+        bug['bugid'] = handler.info['count']
+        bug['created'] = now()
         handler.new_bug(bug)
     elif cmd == 'help':
         print("""
