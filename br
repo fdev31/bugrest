@@ -217,7 +217,7 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
         self.skip_paragraphs += 1
 
     def visit_field(self, node): # attributes
-        self.current_bug[node.children[0].astext()] = node.children[1].astext()
+        self.current_bug[node.children[0].astext().strip()] = node.children[1].astext().strip()
         self.skip_paragraphs += 1
 
     def visit_transition(self, node): # bug separator
