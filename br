@@ -70,6 +70,8 @@ def read_paragraph(prefix=''):
 # http://agateau.com/2015/docutils-snippets/
 
 class Bug:
+    original_text = None
+
     def __init__(self, title):
         self.title = title.strip()
         self.description = ''
@@ -78,7 +80,7 @@ class Bug:
 
     @property
     def id(self):
-        return int(self.attributes['bugid'])
+        return int(self['bugid'] or -42)
 
     @property
     def started(self):
@@ -92,26 +94,6 @@ class Bug:
                 self.title,
                 )
 
-    def to_rst(self):
-        r = []
-        r.append(self.title)
-        r.append("#"*len(self.title))
-        r.append('')
-        for k, v in self.attributes.items():
-            r.append(':%s: %s'%(k, v))
-        r.append('')
-        r.append(self.description.strip().replace('\n\n\n', '\n\n').replace('\n\n\n', '\n\n')) # Super ugly fix 
-        r.append('')
-        for com in self.comments:
-            title, txt = com.split('\n\n', 1)
-            r.append(title)
-            for line in txt.split('\n'):
-                r.append('    ' + line)
-            if com != self.comments[-1]:
-                r.append('')
-
-        return '\n'.join(r)
-
     def __str__(self):
         r = []
         r.append(self.title)
@@ -120,21 +102,24 @@ class Bug:
         for k, v in self.attributes.items():
             r.append(':%s: %s'%(k, v))
         r.append('')
-        r.append(self.description.strip())
-        r.append('')
-        r.append('Comments')
-        r.append('='*len('Comments'))
-        r.append('')
-        for com in self.comments:
-            com, desc = com.split('\n\n', 1)
-            r.append(com)
-            r.append("-"*len(com))
+        if self.original_text:
+            r.append(self.original_text)
+        else:
+            r.append(self.description.strip())
             r.append('')
-            r.append(desc)
-            if com != self.comments[-1]:
+            r.append('Comments')
+            r.append('='*len('Comments'))
+            r.append('')
+            for com in self.comments:
+                com, desc = com.split('\n\n', 1)
+                r.append(com)
+                r.append("-"*len(com))
                 r.append('')
-        if not self.comments:
-            r.append('No comment')
+                r.append(desc)
+                if com != self.comments[-1]:
+                    r.append('')
+            if not self.comments:
+                r.append('No comment')
 
         return '\n'.join(r)
 
@@ -248,6 +233,8 @@ class FileHandler:
     fixed_bugs = []
     bugs_info = []
 
+    bugs_text = []
+
     def __init__(self):
         self.load()
 
@@ -268,7 +255,7 @@ class FileHandler:
 
         data = []
         for i, bug in enumerate(source):
-            data.append(bug.to_rst())
+            data.append(str(bug))
             if i+1 != len(source):
                 data.append("\n\n%s\n\n"%("-"*80)) # separator on single line
         # save only if didn't except before
@@ -289,12 +276,69 @@ class FileHandler:
             settings = OptionParser(components=(Parser,)).get_default_values()
             document = new_document(BUGFILE, settings)
             text = open(fname).read()
+            text_lines = text.split('\n')
             parser.parse(text, document)
+
+            nb_sections = len(document)
+            bugs_text = []
+
+            def deepest(node, which=-1):
+                try:
+                    line = node[which].line
+                except IndexError:
+                    return node.line or -1
+
+                if line:
+                    return deepest(node[which]) or -1
+                return node.line
+
+            import pudb
+            pu.db
+            for i, section in enumerate(document): # TODO: manage appending of siblings sections...
+                try:
+                    start = deepest(section[0], 0)
+                    stop = deepest(section[-1])
+                    title = text_lines[start-2]
+                    orig_text = text_lines[start:stop]
+                except:
+                    import pudb
+                    pu.db
+                else:
+                    b = Bug(title)
+                    b.original_text = '\n'.join(orig_text).strip()
+
+                    if not i:
+                        self.bugs_info.append(b)
+                    else:
+                        if done:
+                            self.fixed_bugs.append(b)
+                        else:
+                            self.bugs.append(b)
+
+#                if i == nb_sections-1:
+#                    orig_text.append("\n" + "-"*80)
+#                bugs_text.append()
+
+#            for t in bugs_text:
+#                print(">>>>>>>>>>>>>>>>%s<<<<<<<<<<<<<<<"%t)
+            '''
             if done:
                 visitor = Visitor(document, source)
             else:
                 visitor = Visitor(document, source, first_special=self.bugs_info)
+
             document.walk(visitor)
+
+            if done:
+                for i, txt in enumerate(bugs_text):
+                    source[i].original_text = bugs_text[i]
+            else:
+                source[0].original_text = bugs_text[0]
+                for i, txt in enumerate(bugs_text):
+                    if i:
+                        source[i-1].original_text = bugs_text[i]
+'''
+
             if not done: # sort bugs
                 if REVERSE_ORDER:
                     def sorting(x):
@@ -400,8 +444,7 @@ if __name__ == '__main__':
         else:
             for i, bug in enumerate(handler):
                 print(bug)
-                if i+1 != len(handler):
-                    print("\n%s\n"%("-"*80))
+                print('\n%s\n'%('-'*80))
     elif cmd == 'grep':
         for i, bug in enumerate(handler):
             text = str(bug)
@@ -475,7 +518,7 @@ if __name__ == '__main__':
         bug = Bug(title)
         blanklines = 0
         for n in range(200):
-            description = input('Description: ').strip()
+            description = input('Description: ')
             if not description:
                 blanklines += 1
                 if blanklines == 2:
