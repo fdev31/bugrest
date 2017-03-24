@@ -1,53 +1,20 @@
-Bugz
-####
+*Bugrest* bug list
+##################
 
-:count: 1
+:count: 5
 
 
 
-Comments
-========
-
-No comment
 
 --------------------------------------------------------------------------------
 
-Super titre no 1
-################
+Attributes should be editable from CLI
+######################################
 
 :priority: 0
 :bugid: 0
-:created: 2017-03-24T21:42:59
+:created: 2017-03-04T00:50:58.652899
+:tags: #lowprio
 
-avec une petite description des familles
-
-- avec une
-- liste
-
-et::
-
-   des maroufles
-   marouflettes
-
-- Un truc comme ça
-   - avec des sous items
-   - et un autre
-
-un
-deux
-trois
-
-un
-
-deux
-
-trois
-
-- une
-
-- liste
-
-Comments
-========
-
-No comment
+* edit single BUG content then update & save
+* **or** ask property name & value in cli
