@@ -69,7 +69,9 @@ def read_paragraph(prefix=''):
 # http://agateau.com/2015/docutils-snippets/
 
 class Bug:
-    original_text = None
+    line_start = 0
+    field_line = 0
+    original_text = ''
 
     def __init__(self, title):
         self.title = title.strip()
@@ -101,26 +103,9 @@ class Bug:
         for k, v in self.attributes.items():
             r.append(':%s: %s'%(k, v))
         r.append('')
-        if self.original_text:
-            r.append(self.original_text)
-        else:
-            r.append(self.description.strip())
-            r.append('')
-            r.append('Comments')
-            r.append('='*len('Comments'))
-            r.append('')
-            for com in self.comments:
-                com, desc = com.split('\n\n', 1)
-                r.append(com)
-                r.append("-"*len(com))
-                r.append('')
-                r.append(desc)
-                if com != self.comments[-1]:
-                    r.append('')
-            if not self.comments:
-                r.append('No comment')
-
-        return '\n'.join(r)
+        stripped = self.field_line - self.line_start
+        r.append('\n'.join(self.original_text.split('\n')[stripped:]))
+        return '\n'.join(r).rstrip('\n')
 
     def add_tag(self, tagname):
         mytags = self['tags'].split('#')
@@ -150,76 +135,27 @@ class Bug:
     def __setitem__(self, name, val):
         self.attributes[name.rstrip().lower()] = str(val).rstrip()
 
-    def add_comment(self, text, suffix='\n'):
-        self.comments.append(text.rstrip()+suffix)
-
-    def append_comment(self, text, suffix='', prefix='\n'):
-        self.comments[-1] += prefix + text.rstrip() + suffix
-
-    def append_description(self, text, prefix='\n\n', suffix=''):
-        if self.description:
-            self.description += prefix + text.rstrip() + suffix
-        else:
-            self.description = prefix + text.rstrip() + suffix
-
 class Visitor(docutils.nodes.GenericNodeVisitor):
 
-    def __init__(self, doc, sink, first_special=False):
+    def __init__(self, doc, bugs):
+        line_mapping = {}
+
+        for i, pos in enumerate(b.line_stop for b in bugs):
+            if i:
+                r = range(previous, pos)
+            else:
+                r = range(pos)
+            for line in r:
+                line_mapping[line] = bugs[i]
+            previous = pos
+
+        self.line_mapping = line_mapping
         docutils.nodes.GenericNodeVisitor.__init__(self, doc)
-        self.sink = sink
-        if first_special is False:
-            self.heading_bugs = 0
-        else:
-            self.special_sink = first_special
-            self.heading_bugs = 1
-
-    def visit_title(self, node):
-        if DEBUG:
-            print('#'*80)
-        if self.heading_bugs:
-            self.heading_bugs -= 1
-            self.current_bug = Bug(node.rawsource.rstrip())
-            self.special_sink.append(self.current_bug)
-        else:
-            self.current_bug = Bug(node.rawsource.rstrip())
-            self.sink.append(self.current_bug)
-        self.skip_paragraphs = 0
-        self.commenting = False
-
-    def visit_literal_block(self, node):
-        if self.commenting:
-            append = self.current_bug.append_comment
-        else:
-            append = self.current_bug.append_description
-        text = '\n'.join( '    %s'%l for l in node.rawsource.split('\n') )
-        append(text, prefix='\n', suffix='\n')
-
-    def visit_list_item(self, node): # list somewhere (comment or description)
-        if self.commenting:
-            self.current_bug.append_comment("- " + node.rawsource.rstrip(), suffix='\n', prefix='')
-        else:
-            self.current_bug.append_description("* " + node.rawsource, prefix='\n', suffix='')
-        self.skip_paragraphs += 1
 
     def visit_field(self, node): # attributes
-        self.current_bug[node.children[0].astext().strip()] = node.children[1].astext().strip()
-        self.skip_paragraphs += 1
-
-    def visit_transition(self, node): # bug separator
-        return
-
-    def visit_paragraph(self, node): # generic text
-        if self.skip_paragraphs:
-            self.skip_paragraphs -= 1
-        else:
-            if self.commenting:
-                self.current_bug.append_comment(node.rawsource.rstrip(), suffix='\n\n')
-            else:
-                self.current_bug.append_description(node.rawsource.rstrip(), suffix='\n\n')
-
-    def visit_definition_list_item(self, node): # comment
-        self.commenting = True
-        self.current_bug.add_comment(node.children[0].rawsource)
+        b = self.line_mapping[node.line]
+        b[node.children[0].astext().strip()] = node.children[1].astext().strip()
+        b.field_line = max(getattr(self, 'field_line', 0), node.line)
 
     def default_visit(self, node):
         if DEBUG:
@@ -230,16 +166,12 @@ class FileHandler:
 
     bugs = []
     fixed_bugs = []
-    bugs_info = []
+    info = None
 
     bugs_text = []
 
     def __init__(self):
         self.load()
-
-    @property
-    def info(self):
-        return self.bugs_info[-1]
 
     def get(self, nr):
         return self.bugs[nr]
@@ -250,7 +182,7 @@ class FileHandler:
             source = self.fixed_bugs
         else:
             fname = BUGFILE
-            source = self.bugs_info + self.bugs
+            source = [self.info] + self.bugs
 
         data = []
         for i, bug in enumerate(source):
@@ -258,6 +190,7 @@ class FileHandler:
             if i+1 != len(source):
                 data.append("\n\n%s\n\n"%("-"*80)) # separator on single line
         # save only if didn't except before
+        data.append('\n')
         o = open(fname, 'w')
         o.writelines(data)
         o.close()
@@ -291,12 +224,10 @@ class FileHandler:
                     return deepest(node[which]) or -1
                 return node.line
 
-            import pudb
-            pu.db
-            for i, section in enumerate(document): # TODO: manage appending of siblings sections...
+            for i, section in enumerate(document):
                 try:
                     start = deepest(section[0], 0)
-                    stop = deepest(section[-1])
+                    stop = deepest(section[-1])+1
                     title = text_lines[start-2]
                     orig_text = text_lines[start:stop]
                 except:
@@ -305,9 +236,13 @@ class FileHandler:
                 else:
                     b = Bug(title)
                     b.original_text = '\n'.join(orig_text).strip()
+                    if b.original_text.endswith('-----'):
+                        b.original_text = b.original_text.rstrip('-')
+                    b.line_start = start
+                    b.line_stop = stop
 
                     if not i:
-                        self.bugs_info.append(b)
+                        self.info = b
                     else:
                         if done:
                             self.fixed_bugs.append(b)
@@ -320,13 +255,13 @@ class FileHandler:
 
 #            for t in bugs_text:
 #                print(">>>>>>>>>>>>>>>>%s<<<<<<<<<<<<<<<"%t)
-            '''
             if done:
-                visitor = Visitor(document, source)
+                visitor = Visitor(document, self.fixed_bugs)
             else:
-                visitor = Visitor(document, source, first_special=self.bugs_info)
-
+                visitor = Visitor(document, [self.info] + self.bugs)
             document.walk(visitor)
+            '''
+
 
             if done:
                 for i, txt in enumerate(bugs_text):
@@ -347,8 +282,8 @@ class FileHandler:
                         return x.priority
                 source.sort(key=sorting)
 
-        if not self.bugs_info:
-            self.bugs_info.append( Bug('Bugz') )
+        if not self.info:
+            self.info = Bug('Tickets')
             self.info['count'] = 0
 
     def new_bug(self, bug):
@@ -503,27 +438,30 @@ if __name__ == '__main__':
         bug = handler.get(nr-1)
 
         description = input('Title: ').rstrip()
-        bug.add_comment(description)
+        comment_text = [description]
         for line in read_paragraph('Comment: '):
-            if line and line[0] in '*-':
-                bug.append_comment(line, suffix='')
-            else:
-                bug.append_comment(line)
+            comment_text.append('    ' + line)
+        bug.original_text += '\n\n' + ('\n'.join(comment_text).rstrip())
         handler.save()
+
     elif cmd == 'new':
         title = input('Title: ').rstrip()
         bug = Bug(title)
         blanklines = 0
+        full_description = []
         for n in range(200):
             description = input('Description: ')
             if not description:
                 blanklines += 1
                 if blanklines == 2:
                     break
-                bug.append_description('', prefix='\n') # add blank line
+                full_description.append('')
                 continue
             blanklines = 0
-            bug.append_description(description, prefix='\n') # FIXME: parse rst instead of generating bug manually
+            full_description.append(description)
+        full_description.append('')
+        full_description.append('-'*10)
+        bug.original_text = '\n'.join(full_description)
         bug['priority'] = '0'
         bug['bugid'] = handler.info['count']
         bug['created'] = now()
