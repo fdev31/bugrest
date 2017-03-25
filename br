@@ -231,6 +231,7 @@ class FileHandler:
 
                     if not i:
                         self.info = b
+                        self.info.attributes.setdefault('count', 0)
                     else:
                         if done:
                             self.fixed_bugs.append(b)
