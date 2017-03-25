@@ -1,5 +1,5 @@
-BugReST
-#######
+BuRst
+#####
 
 Basic bugtracker that uses a plain text file (*ReStructuredText* compatible) as database.
 
