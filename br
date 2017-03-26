@@ -250,29 +250,11 @@ class FileHandler:
                         else:
                             self.bugs.append(b)
 
-#                if i == nb_sections-1:
-#                    orig_text.append("\n" + "-"*80)
-#                bugs_text.append()
-
-#            for t in bugs_text:
-#                print(">>>>>>>>>>>>>>>>%s<<<<<<<<<<<<<<<"%t)
             if done:
                 visitor = Visitor(document, self.fixed_bugs)
             else:
                 visitor = Visitor(document, [self.info] + self.bugs)
             document.walk(visitor)
-            '''
-
-
-            if done:
-                for i, txt in enumerate(bugs_text):
-                    source[i].original_text = bugs_text[i]
-            else:
-                source[0].original_text = bugs_text[0]
-                for i, txt in enumerate(bugs_text):
-                    if i:
-                        source[i-1].original_text = bugs_text[i]
-'''
 
             if not done: # sort bugs
                 if REVERSE_ORDER:
