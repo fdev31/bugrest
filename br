@@ -72,6 +72,7 @@ def read_paragraph(prefix=''):
 class Bug:
     line_start = 0
     field_line = 0
+    nb_comments = 0
     original_text = ''
 
     def __init__(self, title):
@@ -89,10 +90,11 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self):
-        return "%s%4d -%s- %s"%(
+        return "%s%4d -%s- [%d] %s"%(
                 self.started and 'X>' or '  ',
                 i+1,
                 self['tags'].replace('#',' ').center(20, '-'),
+                self.nb_comments,
                 self.title,
                 )
 
@@ -152,6 +154,10 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
 
         self.line_mapping = line_mapping
         docutils.nodes.GenericNodeVisitor.__init__(self, doc)
+
+    def visit_definition_list_item(self, node):
+        b = self.line_mapping[node.line]
+        b.nb_comments += 1
 
     def visit_field(self, node): # attributes
         b = self.line_mapping[node.line]
