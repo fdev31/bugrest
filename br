@@ -136,9 +136,21 @@ class Bug:
     def __setitem__(self, name, val):
         self.attributes[name.rstrip().lower()] = str(val).rstrip()
 
+class Visitor(docutils.nodes.GenericNodeVisitor):
 
+    def __init__(self, doc, bugs):
+        line_mapping = {}
 
+        for i, pos in enumerate(b.line_stop for b in bugs):
+            if i:
+                r = range(previous, pos)
+            else:
+                r = range(pos)
+            for line in r:
+                line_mapping[line] = bugs[i]
+            previous = pos
 
+        self.line_mapping = line_mapping
         docutils.nodes.GenericNodeVisitor.__init__(self, doc)
 
     def visit_field(self, node): # attributes
@@ -179,6 +191,7 @@ class FileHandler:
             if i+1 != len(source):
                 data.append("\n\n%s\n\n"%("-"*80)) # separator on single line
         # save only if didn't except before
+        data.append('\n')
         o = open(fname, 'w')
         o.writelines(data)
         o.close()
@@ -238,18 +251,13 @@ class FileHandler:
                         else:
                             self.bugs.append(b)
 
-#                if i == nb_sections-1:
-#                    orig_text.append("\n" + "-"*80)
-#                bugs_text.append()
-
-#            for t in bugs_text:
-#                print(">>>>>>>>>>>>>>>>%s<<<<<<<<<<<<<<<"%t)
             if done:
-                visitor = Visitor(document, source)
+                visitor = Visitor(document, self.fixed_bugs)
             else:
-                visitor = Visitor(document, source, first_special=self.bugs_info)
-
+                visitor = Visitor(document, [self.info] + self.bugs)
             document.walk(visitor)
+            '''
+
 
             if done:
                 for i, txt in enumerate(bugs_text):
