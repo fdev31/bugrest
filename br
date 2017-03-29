@@ -462,6 +462,7 @@ if __name__ == '__main__':
 Commands:
     list: short listing of bugs (default action)
     show: detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
+    html: same as above, but in html format
      new: open a new bug
       rm: remove some bug (mark as fixed)
      add: add some comment to a bug
