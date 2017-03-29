@@ -1,10 +1,11 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import os
 import sys
 import datetime
 
 import docutils
+from docutils.core import publish_string
 from docutils.frontend import OptionParser
 from docutils.utils import new_document
 from docutils.parsers.rst import Parser
@@ -467,6 +468,8 @@ if __name__ == '__main__':
             else:
                 bug.append_comment(line)
         handler.save()
+    elif cmd == 'html':
+        print(publish_string(open(BUGFILE).read(), writer_name='html'))
     elif cmd == 'new':
         title = input('Title: ').rstrip()
         bug = Bug(title)
