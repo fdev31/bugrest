@@ -12,6 +12,15 @@ from docutils.frontend import OptionParser
 from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 
+try:
+    import pygments
+except ImportError:
+    def colorize(txt):
+        return txt
+else:
+    def colorize(txt):
+        return pygments.highlight(txt, pygments.lexers.get_lexer_by_name('rst'), pygments.formatters.get_formatter_by_name('terminal'))
+
 REVERSE_ORDER=True
 
 try:
@@ -373,7 +382,7 @@ if __name__ == '__main__':
             print(handler.get(nr))
         else:
             for i, bug in enumerate(handler):
-                print(unicode(bug))
+                print(colorize(unicode(bug)))
                 print('\n%s\n'%('-'*80))
     elif cmd == 'grep':
         for i, bug in enumerate(handler):
