@@ -388,10 +388,10 @@ if __name__ == '__main__':
                 print('')
     elif cmd == 'grep':
         for i, bug in enumerate(handler):
-            text = str(bug)
+            text = str(bug).lower()
             count = 0
             for pattern in args:
-                if pattern in text:
+                if pattern.lower() in text:
                     count += 1
             if count == len(args):
                 print(bug.string_as_list())
