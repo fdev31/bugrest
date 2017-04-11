@@ -385,7 +385,7 @@ if __name__ == '__main__':
         else:
             for i, bug in enumerate(handler):
                 print(colorize(unicode(bug)))
-                print('\n%s\n'%('-'*80))
+                print('')
     elif cmd == 'grep':
         for i, bug in enumerate(handler):
             text = str(bug)
