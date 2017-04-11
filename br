@@ -13,6 +13,8 @@ from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 
 try:
+    if not sys.stdout.isatty():
+        raise ImportError
     import pygments
 except ImportError:
     def colorize(txt):
