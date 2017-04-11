@@ -489,6 +489,9 @@ Commands:
      add: add some comment to a bug
    start: starts counting elapsed time for this bug
     stop: stops counting elapsed time for this bug
+     tag: adds a tag to a bug
+   untag: removes a tag
+    grep: list bugs containing given pattern(s)
 
 Examples:
 user@host:~$ %(prog)s
@@ -496,7 +499,7 @@ user@host:~$ %(prog)s
    21  - missing image
    37  - doc needs review
 user@host:~$ echo -e "test bug\\nsimple description\\n" | %(prog)s new
-user@host:~$ %(prog)s show | rst2html > buglist.html
+user@host:~$ %(prog)s show | rst2pdf  > buglist.pdf
 user@host:~$ echo "Fixed in #4242" | %(prog)s add 21 && %(prog)s rm 21
                 """%dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
 
