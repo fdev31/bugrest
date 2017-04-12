@@ -44,5 +44,5 @@ Show description of some specific bug::
 
 Produce an html report::
 
-    br show | rst2html > bugs.html
+    br html > bugs.html
 
