@@ -295,8 +295,9 @@ class FileHandler:
 
     def new_bug(self, bug):
         bug['created'] = now()
-        bug['bugid'] = self.info['count']
-        self.info['count'] = int(self.info['count']) + 1
+        cnt = int(self.info['count'])
+        bug['bugid'] = cnt + 1
+        self.info['count'] =  cnt + 1
         self.bugs.append(bug)
         self.save()
 
