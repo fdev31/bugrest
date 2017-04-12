@@ -369,7 +369,7 @@ if __name__ == '__main__':
     if cmd == 'list' or cmd == 'ls':
         for i, bug in enumerate(handler):
             print(bug.string_as_list())
-    if cmd.startswith('prio'):
+    elif cmd.startswith('prio'):
         prio = int(args[0])
         for i, bug in enumerate(handler):
             if bug.priority >= prio:
