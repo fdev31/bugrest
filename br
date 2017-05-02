@@ -230,7 +230,7 @@ class FileHandler:
         if os.path.exists(fname):
             parser = Parser()
             settings = OptionParser(components=(Parser,)).get_default_values()
-            document = new_document(BUGFILE, settings)
+            document = new_document(fname, settings)
             text = codecs.open(fname, encoding='utf-8').read()
             text_lines = text.split('\n')
             parser.parse(text, document)
@@ -265,7 +265,7 @@ class FileHandler:
                     b.line_start = start
                     b.line_stop = stop
 
-                    if not i:
+                    if not i and not done:
                         self.info = b
                         self.info.attributes.setdefault('count', 0)
                     else:
