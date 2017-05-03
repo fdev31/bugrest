@@ -107,10 +107,10 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self):
-        return "%s%4d -%s- [%d] %s"%(
-                self.started and 'X>' or '  ',
+        return " %s %s%-3d[%d] %s"%(
+                self['tags'].replace('#',' ').center(20, ' '),
+                self.started and '*' or ' ',
                 i+1,
-                self['tags'].replace('#',' ').center(20, '-'),
                 self.nb_comments,
                 self.title,
                 )
