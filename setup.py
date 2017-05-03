@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+from codecs import open
+from setuptools import setup
 
 setup(
     name="bugrest",
@@ -13,7 +14,7 @@ setup(
     url='https://github.com/fdev31/bugrest',
     keywords=[],
     install_requires=[
-            'docutils >= 0.12',
+        'docutils >= 0.12',
         ],
     classifiers=[
         'Environment :: Console',
