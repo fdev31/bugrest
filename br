@@ -381,7 +381,7 @@ if __name__ == '__main__':
             nr = None
 
         if nr is not None:
-            print(handler.get(nr))
+            print(colorize(unicode(handler.get(nr))))
         else:
             for i, bug in enumerate(handler):
                 print(colorize(unicode(bug)))
