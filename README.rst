@@ -7,6 +7,10 @@ In theory it should run everywhere with Python2 or Python3 available.
 
 See some generated `Bug file <bugs.rst>`_
 
+Screenshot
+==========
+
+.. image:: shot.png
 
 Usage
 =====
