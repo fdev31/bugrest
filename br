@@ -222,7 +222,7 @@ class FileHandler:
 
     def get(self, nr):
         if not nr:
-            raise RuntimeError('Bug identifier required')
+            raise RuntimeError('Wrong bug id')
         if isinstance(nr, str) and nr[0] == '#':
             bugid = nr[1:]
             for bug in self:
@@ -231,6 +231,8 @@ class FileHandler:
         else:
             nr = int(nr) - 1
             return self.bugs[nr]
+
+        raise RuntimeError('Wrong bug id')
 
     def save(self, done=False):
         if done:

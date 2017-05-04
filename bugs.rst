@@ -31,6 +31,6 @@ There is no error management
 :priority: 6
 :bugid: 3
 :created: 2017-03-26T22:38:40
-:started: 2017-05-04T18:17:25
+:timer: 3
 
 When using the tool wrong, user should have instructive feedback instead of python traceback
