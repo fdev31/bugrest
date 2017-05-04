@@ -16,12 +16,25 @@ try:
     if not sys.stdout.isatty():
         raise ImportError
     import pygments
+    import pygments.console
 except ImportError:
-    def colorize(txt):
+    def colorize(txt, *a):
         return txt
+
+    styled = colorize
 else:
     def colorize(txt):
         return pygments.highlight(txt, pygments.lexers.get_lexer_by_name('rst'), pygments.formatters.get_formatter_by_name('terminal'))
+
+    def styled(txt, how):
+        if not how:
+            return txt
+        if isinstance(how, (list, tuple)):
+            mine = how.pop(0)
+        else:
+            mine = how
+            how = None
+        return styled(pygments.console.codes[mine] + txt + pygments.console.codes['reset'], how)
 
 REVERSE_ORDER=True
 
@@ -107,12 +120,12 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        return " %s %s%-3d[%d] %s"%(
-                self['tags'].replace('#',' ').center(20, ' '),
+        return " %s %s%3s [%d] %s" % (
+                styled(self['tags'].replace('#',' ').center(20, ' '), 'teal'),
                 self.started and '*' or ' ',
-                i+1,
+                styled(str(i+1), 'bold'),
                 self.nb_comments,
-                self.title,
+                styled(self.title, ['standout', 'yellow']),
                 )
 
     def __str__(self):
