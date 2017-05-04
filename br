@@ -220,7 +220,12 @@ class FileHandler:
         self.fixed_bugs = []
         self.info = None
         self.bugs_text = []
+        self.mixed_priorities = False
         self.load()
+
+    @property
+    def single_priority(self):
+        return all(x.priority == 0 for x in self)
 
     def get(self, nr):
         if not nr:
@@ -272,16 +277,6 @@ class FileHandler:
             parser.parse(text, document)
             indices = [i for i, l in enumerate(text_lines) if l.startswith('------')]
 
-            def deepest(node, which=-1):
-                try:
-                    line = node[which].line
-                except IndexError:
-                    return node.line or -1
-
-                if line:
-                    return deepest(node[which]) or -1
-                return node.line
-
             start = 0
             for i, section in enumerate(document):
                 if i:
@@ -304,7 +299,6 @@ class FileHandler:
 
                 if not i and not done:
                     self.info = b
-#                     self.info.attributes.setdefault('count', 0)
                 else:
                     if done:
                         self.fixed_bugs.append(b)
@@ -403,8 +397,9 @@ def main():
 
     if cmd == 'list' or cmd == 'ls':
         priority = None
+        show_priorities = not handler.single_priority
         for i, bug in enumerate(handler):
-            if bug['priority'] != priority:
+            if show_priorities and bug['priority'] != priority:
                 priority = bug['priority']
                 print("  prio %s" % priority)
             print(bug.string_as_list(i))
