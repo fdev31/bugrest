@@ -34,7 +34,7 @@ else:
         else:
             mine = how
             how = None
-        return styled(pygments.console.codes[mine] + txt + pygments.console.codes['reset'], how)
+        return styled(pygments.console.colorize(mine, txt), how)
 
 REVERSE_ORDER=True
 
