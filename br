@@ -23,8 +23,11 @@ except ImportError:
 
     styled = colorize
 else:
+    col_lex = pygments.lexers.get_lexer_by_name('rst')
+    col_fmt = pygments.formatters.get_formatter_by_name('terminal')
+
     def colorize(txt):
-        return pygments.highlight(txt, pygments.lexers.get_lexer_by_name('rst'), pygments.formatters.get_formatter_by_name('terminal'))
+        return pygments.highlight(txt, col_lex, col_fmt)
 
     def styled(txt, how):
         if not how:
@@ -36,11 +39,11 @@ else:
             how = None
         return styled(pygments.console.colorize(mine, txt), how)
 
-REVERSE_ORDER=True
+REVERSE_ORDER = True
 
 try:
     raw_input
-except NameError: # if python3
+except NameError:  # if python3
     unicode = str
 else:
     input = raw_input
@@ -59,8 +62,8 @@ STYLEFILE = os.path.join(CFGDIR, 'style.css')
 BUGFILE = 'bugs.rst'
 DONEFILE = 'fixed_bugs.rst'
 DEBUG = False
-SOURCE_MGR=True
-TIMER_ATOM = 3600 # number of seconds to add "1" to timer, defaults to 1h
+SOURCE_MGR = True
+TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 
 if not os.path.exists(CFGFILE):
     open(CFGFILE, 'w').write('''# sample config, Python syntax
@@ -68,20 +71,22 @@ BUGFILE="%s"
 DONEFILE="%s"
 DEBUG=%s
 SOURCE_MGR=%s
-'''%(
-    BUGFILE,
-    DONEFILE,
-    DEBUG,
-    SOURCE_MGR
+''' % (
+       BUGFILE,
+       DONEFILE,
+       DEBUG,
+       SOURCE_MGR
     ))
 
 exec(open(CFGFILE).read())
+
 
 def now(iso=True):
     r = datetime.datetime.now()
     if iso:
         r = r.isoformat().rsplit('.', 1)[0]
     return r
+
 
 def read_paragraph(prefix=''):
     blanklines = 0
@@ -98,6 +103,7 @@ def read_paragraph(prefix=''):
 
 # For later if needed ? to create documents from nodes...
 # http://agateau.com/2015/docutils-snippets/
+
 
 class Bug:
     line_start = 0
@@ -121,7 +127,7 @@ class Bug:
 
     def string_as_list(self, i):
         return " %s %s%3s [%d] %s" % (
-                styled(self['tags'].replace('#',' ').center(20, ' '), 'teal'),
+                styled(self['tags'].replace('#', ' ').center(20, ' '), 'teal'),
                 self.started and '*' or ' ',
                 styled(str(i+1), 'bold'),
                 self.nb_comments,
@@ -134,7 +140,7 @@ class Bug:
         r.append("#"*len(self.title))
         r.append('')
         for k, v in self.attributes.items():
-            r.append(':%s: %s'%(k, v))
+            r.append(':%s: %s' % (k, v))
         r.append('')
         stripped = self.field_line - self.line_start
         r.append('\n'.join(self.original_text.split('\n')[stripped:]))
@@ -168,10 +174,12 @@ class Bug:
     def __setitem__(self, name, val):
         self.attributes[name.rstrip().lower()] = str(val).rstrip()
 
+
 class Visitor(docutils.nodes.GenericNodeVisitor):
 
     def __init__(self, doc, bugs):
         line_mapping = {}
+        previous = None
 
         for i, pos in enumerate(b.line_stop for b in bugs):
             if i:
@@ -189,7 +197,7 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
         b = self.line_mapping[node.line]
         b.nb_comments += 1
 
-    def visit_field(self, node): # attributes
+    def visit_field(self, node):  # attributes
         b = self.line_mapping[node.line]
         b[node.children[0].astext().strip()] = node.children[1].astext().strip()
         b.field_line = max(getattr(self, 'field_line', 0), node.line)
@@ -197,10 +205,10 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
     def default_visit(self, node):
         if DEBUG:
             print("=", node.tagname)
-            print("[[%s]]"%node.rawsource)
+            print("[[%s]]" % node.rawsource)
+
 
 class FileHandler:
-
 
     def __init__(self):
         self.bugs = []
@@ -224,7 +232,7 @@ class FileHandler:
         for i, bug in enumerate(source):
             data.append(str(bug))
             if i+1 != len(source):
-                data.append("\n\n%s\n\n"%("-"*80)) # separator on single line
+                data.append("\n\n%s\n\n" % ("-"*80))  # separator on single line
         # save only if didn't except before
         data.append('\n')
         o = codecs.open(fname, 'w', encoding='utf-8')
@@ -246,9 +254,6 @@ class FileHandler:
             text = codecs.open(fname, encoding='utf-8').read()
             text_lines = text.split('\n')
             parser.parse(text, document)
-
-            nb_sections = len(document)
-            bugs_text = []
 
             def deepest(node, which=-1):
                 try:
@@ -292,7 +297,7 @@ class FileHandler:
                 visitor = Visitor(document, [self.info] + self.bugs)
             document.walk(visitor)
 
-            if not done: # sort bugs
+            if not done:  # sort bugs
                 if REVERSE_ORDER:
                     def sorting(x):
                         return x.priority+1/(1+x.id)
@@ -328,7 +333,7 @@ class FileHandler:
             else:
                 old = int(bug['timer'])
 
-            last_date = dateutil.parser.parse( bug['started'] )
+            last_date = dateutil.parser.parse(bug['started'])
             old += ((now(False) - last_date).seconds/TIMER_ATOM)
             del bug['started']
             bug['timer'] = int(old)
@@ -364,7 +369,7 @@ if __name__ == '__main__':
             else:
                 current_path += os.path.sep
             for scm in 'svn hg git bzr'.split():
-                if os.path.isdir("%s.%s"%(current_path, scm)):
+                if os.path.isdir("%s.%s" % (current_path, scm)):
                     found = current_path
         if found:
             os.chdir(found)
@@ -447,7 +452,7 @@ if __name__ == '__main__':
             nr = int(args[0])
         except IndexError:
             nr = input('nr: ')
-        handler.load(True) # loads current fixed bugs list too
+        handler.load(True)  # loads current fixed bugs list too
         handler.mark_fixed(int(nr)-1)
     elif cmd == 'add':
         try:
@@ -466,7 +471,7 @@ if __name__ == '__main__':
         text = codecs.open(BUGFILE, encoding='utf-8').read()
         text = text.rstrip().rstrip('-')
         print(publish_string(text, writer_name='html', settings_overrides={
-            'stylesheet_path': STYLEFILE # Replace with a pkg_resource thing or another hack to get data
+            'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
             }))
     elif cmd == 'new':
         title = input('Title: ').rstrip()
@@ -491,8 +496,8 @@ if __name__ == '__main__':
         bug['created'] = now()
         handler.new_bug(bug)
     else:
-        print("""
-Commands:
+        print("Commands:")
+        docs = """\
     list: short listing of bugs (default action)
     show: detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
@@ -503,8 +508,11 @@ Commands:
     stop: stops counting elapsed time for this bug
      tag: adds a tag to a bug
    untag: removes a tag
-    grep: list bugs containing given pattern(s)
-
+    grep: list bugs containing given pattern(s)"""
+        for doc in docs.split('\n'):
+            name, desc = doc.split(': ', 1)
+            print("%s: %s" % (styled(name, 'blue'), desc))
+        print(styled("""
 Examples:
 user@host:~$ %(prog)s
    10  - red looks green
@@ -513,6 +521,4 @@ user@host:~$ %(prog)s
 user@host:~$ echo -e "test bug\\nsimple description\\n" | %(prog)s new
 user@host:~$ %(prog)s show | rst2pdf  > buglist.pdf
 user@host:~$ echo "Fixed in #4242" | %(prog)s add 21 && %(prog)s rm 21
-                """%dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
-
-
+                """ % dict(prog=sys.argv[0].rsplit('/', 1)[-1]), 'standout'))
