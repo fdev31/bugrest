@@ -106,7 +106,7 @@ class Bug:
     def started(self):
         return 'started' in self.attributes
 
-    def string_as_list(self):
+    def string_as_list(self, i):
         return " %s %s%-3d[%d] %s"%(
                 self['tags'].replace('#',' ').center(20, ' '),
                 self.started and '*' or ' ',
@@ -188,13 +188,12 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
 
 class FileHandler:
 
-    bugs = []
-    fixed_bugs = []
-    info = None
-
-    bugs_text = []
 
     def __init__(self):
+        self.bugs = []
+        self.fixed_bugs = []
+        self.info = None
+        self.bugs_text = []
         self.load()
 
     def get(self, nr):
@@ -368,12 +367,12 @@ if __name__ == '__main__':
 
     if cmd == 'list' or cmd == 'ls':
         for i, bug in enumerate(handler):
-            print(bug.string_as_list())
+            print(bug.string_as_list(i))
     elif cmd.startswith('prio'):
         prio = int(args[0])
         for i, bug in enumerate(handler):
             if bug.priority >= prio:
-                print(bug.string_as_list())
+                print(bug.string_as_list(i))
     elif cmd.startswith('show'):
         try:
             nr = int(args[0])-1
@@ -394,7 +393,7 @@ if __name__ == '__main__':
                 if pattern.lower() in text:
                     count += 1
             if count == len(args):
-                print(bug.string_as_list())
+                print(bug.string_as_list(i))
 
     elif cmd == 'untag':
         bug_nr = int(args[0])-1
@@ -417,7 +416,7 @@ if __name__ == '__main__':
         else:
             for i, bug in enumerate(handler):
                 if tagname in bug['tags']:
-                    print(bug.string_as_list())
+                    print(bug.string_as_list(i))
     elif cmd == 'start':
         try:
             nr = int(args[0])
