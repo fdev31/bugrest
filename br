@@ -126,12 +126,13 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        return " %s [%2d] %s%3s %s" % (
+        return " %s [%2d] %s%3s %s #%d" % (
                 styled(self['tags'].replace('#', ' ').center(20, ' '), 'teal'),
                 self.nb_comments,
                 styled('*', 'bold') if self.started else ' ',
                 styled(str(i+1), 'bold'),
                 styled(self.title, ['standout', 'yellow' if self.started else 'blue']),
+                self.id
                 )
 
     def __str__(self):
@@ -166,7 +167,10 @@ class Bug:
         return int(self.attributes.get('priority', 0))
 
     def __delitem__(self, name):
-        del self.attributes[name]
+        try:
+            del self.attributes[name]
+        except KeyError:
+            raise RuntimeError('No such attribute "%s"' % name)
 
     def __getitem__(self, name):
         return self.attributes.get(name, '')
@@ -357,7 +361,8 @@ class FileHandler:
         return len(self.bugs)
 
 
-if __name__ == '__main__':
+def main():
+
     if SOURCE_MGR:
         fold = os.path.abspath(os.path.curdir)
         found = None
@@ -495,6 +500,37 @@ if __name__ == '__main__':
         bug['bugid'] = handler.info['count']
         bug['created'] = now()
         handler.new_bug(bug)
+    elif cmd == 'unset':
+        nr = int(args[0])-1
+        bug = handler.get(nr)
+        if len(args) > 1:
+            name = args[1]
+        else:
+            name = input('Attribute name: ').strip()
+        del bug[name]
+        handler.save()
+        print(colorize(unicode(bug)))
+    elif cmd == 'get':
+        nr = int(args[0])-1
+        bug = handler.get(nr)
+        if len(args) > 1:
+            name = args[1]
+        else:
+            name = input('Attribute name: ').strip()
+        print("%s: %s" % (styled(name, 'yellow'), styled(bug[name], 'bold')))
+    elif cmd == 'set':
+        nr = int(args[0])-1
+        bug = handler.get(nr)
+
+        if len(args) > 1:
+            name = args[1]
+            value = args[2]
+        else:
+            name = input('Attribute name: ').strip()
+            value = input('Value: ').strip()
+        bug[name] = value
+        handler.save()
+        print(colorize(unicode(bug)))
     else:
         print(""" Examples:
     user@host:~$ %(prog)s
@@ -503,21 +539,38 @@ if __name__ == '__main__':
                         [ 0] *3 More documentation needed
     user@host:~$ echo -e "test bug\\nsimple description\\n\\n" | %(prog)s new
     user@host:~$ %(prog)s show | rst2pdf  > buglist.pdf
-    user@host:~$ echo "Fixed in #4242" | %(prog)s add 21 && %(prog)s rm 21
                 """ % dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
         print(" Commands:")
+
+        import re
         docs = """\
     list: short listing of bugs (default action)
-    show: detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
+    show: [bug nr] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
      new: open a new bug
-      rm: remove some bug (mark as fixed)
-     add: add some comment to a bug
-   start: starts counting elapsed time for this bug
-    stop: stops counting elapsed time for this bug
-     tag: adds a tag to a bug
-   untag: removes a tag
-    grep: list bugs containing given pattern(s)"""
+      rm: [bug nr] | remove some bug (mark as fixed)
+     add: [bug nr] | add some comment to a bug
+   start: [bug nr] | starts counting elapsed time for this bug
+    stop: [bug nr] | stops counting elapsed time for this bug
+     tag: [bug nr] [tag name] | adds a tag to a bug
+   untag: [bug nr] [tag name] | removes a tag
+     get: [bug nr] [attr name] | prints an attribute value
+     set: [bug nr] [attr name] [value] | adds an attribute to a bug
+   unset: [bug nr] [attr name] | removes an attribute
+    grep: [pattern] | list bugs containing given pattern(s)"""
         for doc in docs.split('\n'):
             name, desc = doc.split(': ', 1)
-            print("%s: %s" % (styled(name, 'blue'), desc))
+            if ' | ' in desc:
+                args, desc = desc.split(' | ', 1)
+                args = args
+                desc = ' '  + desc
+            else:
+                args = ''
+            print("%s %s%s" % (styled(name, 'yellow'), args, styled(desc.title(), 'blue')))
+
+if __name__ == '__main__':
+    try:
+        main()
+    except RuntimeError as e:
+        print(u' '.join(e.args))
+
