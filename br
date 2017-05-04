@@ -39,7 +39,7 @@ else:
             how = None
         return styled(pygments.console.colorize(mine, txt), how)
 
-REVERSE_ORDER = True
+REVERSE_ORDER = False
 
 try:
     raw_input
@@ -71,11 +71,13 @@ BUGFILE="%s"
 DONEFILE="%s"
 DEBUG=%s
 SOURCE_MGR=%s
+REVERSE_ORDER=%s
 ''' % (
        BUGFILE,
        DONEFILE,
        DEBUG,
-       SOURCE_MGR
+       SOURCE_MGR,
+       REVERSE_ORDER,
     ))
 
 exec(open(CFGFILE).read())
