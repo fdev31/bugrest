@@ -126,12 +126,12 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        return " %s %s%3s [%d] %s" % (
+        return " %s [%2d] %s%3s %s" % (
                 styled(self['tags'].replace('#', ' ').center(20, ' '), 'teal'),
-                self.started and '*' or ' ',
-                styled(str(i+1), 'bold'),
                 self.nb_comments,
-                styled(self.title, ['standout', 'yellow']),
+                styled('*', 'bold') if self.started else ' ',
+                styled(str(i+1), 'bold'),
+                styled(self.title, ['standout', 'yellow' if self.started else 'blue']),
                 )
 
     def __str__(self):
@@ -496,7 +496,16 @@ if __name__ == '__main__':
         bug['created'] = now()
         handler.new_bug(bug)
     else:
-        print("Commands:")
+        print(""" Examples:
+    user@host:~$ %(prog)s
+        nicetohave      [ 0]  1 Would be very nice to have http ui
+                        [ 0]  2 Sometimes text disapears
+                        [ 0] *3 More documentation needed
+    user@host:~$ echo -e "test bug\\nsimple description\\n\\n" | %(prog)s new
+    user@host:~$ %(prog)s show | rst2pdf  > buglist.pdf
+    user@host:~$ echo "Fixed in #4242" | %(prog)s add 21 && %(prog)s rm 21
+                """ % dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
+        print(" Commands:")
         docs = """\
     list: short listing of bugs (default action)
     show: detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
@@ -512,13 +521,3 @@ if __name__ == '__main__':
         for doc in docs.split('\n'):
             name, desc = doc.split(': ', 1)
             print("%s: %s" % (styled(name, 'blue'), desc))
-        print(styled("""
-Examples:
-user@host:~$ %(prog)s
-   10  - red looks green
-   21  - missing image
-   37  - doc needs review
-user@host:~$ echo -e "test bug\\nsimple description\\n" | %(prog)s new
-user@host:~$ %(prog)s show | rst2pdf  > buglist.pdf
-user@host:~$ echo "Fixed in #4242" | %(prog)s add 21 && %(prog)s rm 21
-                """ % dict(prog=sys.argv[0].rsplit('/', 1)[-1]), 'standout'))
