@@ -497,8 +497,6 @@ def main():
         full_description.append('-'*10)
         bug.original_text = '\n'.join(full_description)
         bug['priority'] = '0'
-        bug['bugid'] = handler.info['count']
-        bug['created'] = now()
         handler.new_bug(bug)
     elif cmd == 'unset':
         nr = int(args[0])-1
