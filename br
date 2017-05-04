@@ -320,10 +320,10 @@ class FileHandler:
             if not done:  # sort bugs
                 if REVERSE_ORDER:
                     def sorting(x):
-                        return x.priority+1/(1+x.id)
+                        return (-x.priority, x.id)
                 else:
                     def sorting(x):
-                        return x.priority
+                        return (x.priority, x.id)
                 source.sort(key=sorting)
 
         if not self.info:
@@ -402,7 +402,11 @@ def main():
         args = sys.argv[2:]
 
     if cmd == 'list' or cmd == 'ls':
+        priority = None
         for i, bug in enumerate(handler):
+            if bug['priority'] != priority:
+                priority = bug['priority']
+                print("  prio %s" % priority)
             print(bug.string_as_list(i))
     elif cmd.startswith('prio'):
         prio = int(args[0])
