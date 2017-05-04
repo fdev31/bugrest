@@ -142,7 +142,6 @@ class Bug:
         r.append('')
         for k, v in self.attributes.items():
             r.append(':%s: %s' % (k, v))
-        r.append('')
         stripped = self.field_line - self.line_start
         r.append('\n'.join(self.original_text.split('\n')[stripped:]))
         return '\n'.join(r).rstrip('\n')
@@ -185,7 +184,7 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
         line_mapping = {}
         previous = None
 
-        for i, pos in enumerate(b.line_stop for b in bugs):
+        for i, pos in enumerate(b.line_stop+1 for b in bugs):
             if i:
                 r = range(previous, pos)
             else:
@@ -267,6 +266,7 @@ class FileHandler:
             text = codecs.open(fname, encoding='utf-8').read()
             text_lines = text.split('\n')
             parser.parse(text, document)
+            indices = [i for i, l in enumerate(text_lines) if l.startswith('------')]
 
             def deepest(node, which=-1):
                 try:
@@ -278,31 +278,34 @@ class FileHandler:
                     return deepest(node[which]) or -1
                 return node.line
 
+            start = 0
             for i, section in enumerate(document):
-                try:
-                    start = deepest(section[0], 0)
-                    stop = deepest(section[-1])+1
-                    title = text_lines[start-2]
-                    orig_text = text_lines[start:stop]
-                except:
-                    import pudb
-                    pu.db
+                if i:
+                    start = indices[i - 1] + 2
+                    title = text_lines[start]
                 else:
-                    b = Bug(title)
-                    b.original_text = '\n'.join(orig_text).strip()
-                    if b.original_text.endswith('-----'):
-                        b.original_text = b.original_text.rstrip('-')
-                    b.line_start = start
-                    b.line_stop = stop
+                    title = text_lines[0]
+                start += 3
+                if i+1 == len(document):
+                    stop = len(text_lines) - 1
+                else:
+                    stop = indices[i] - 1
+                orig_text = text_lines[start:stop]
+                b = Bug(title)
+                b.original_text = '\n'.join(orig_text).strip()
+                if b.original_text.endswith('-----'):
+                    b.original_text = b.original_text.rstrip('-')
+                b.line_start = start
+                b.line_stop = stop
 
-                    if not i and not done:
-                        self.info = b
-                        self.info.attributes.setdefault('count', 0)
+                if not i and not done:
+                    self.info = b
+#                     self.info.attributes.setdefault('count', 0)
+                else:
+                    if done:
+                        self.fixed_bugs.append(b)
                     else:
-                        if done:
-                            self.fixed_bugs.append(b)
-                        else:
-                            self.bugs.append(b)
+                        self.bugs.append(b)
 
             if done:
                 visitor = Visitor(document, self.fixed_bugs)
@@ -321,7 +324,6 @@ class FileHandler:
 
         if not self.info:
             self.info = Bug('Tickets')
-            self.info['count'] = 0
 
     def new_bug(self, bug):
         bug['created'] = now()
