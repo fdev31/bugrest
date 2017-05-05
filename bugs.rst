@@ -5,25 +5,6 @@
 
 --------------------------------------------------------------------------------
 
-Would be very nice to have http ui
-==================================
-
-:bugid: 5
-:created: 2017-03-26T22:43:50
-:priority: 0
-:tags: #nicetohave
-
-And simple http UI is appreciated
-Would allow
-
-- listing
-- grepping
-- adding new bug or comment
-- deleting (marking done)
-- RST editor ?
-
---------------------------------------------------------------------------------
-
 CSS file not installed
 ======================
 
