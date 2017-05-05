@@ -11,7 +11,7 @@ __ https://raw.githubusercontent.com/fdev31/loof/master/bugs.rst
 Screenshot
 ==========
 
-.. image:: https://github.com/fdev31/bugrest/blob/master/shot.png
+.. image:: https://github.com/fdev31/bugrest/raw/master/shot.png
 
 Usage
 =====
