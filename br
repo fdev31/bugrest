@@ -528,24 +528,21 @@ def cmd_unset(handler, nr, name=None):
     print(colorize(unicode(bug)))
 
 
-def cmd_get(handler, nr):
+def cmd_get(handler, nr, name=None):
     bug = handler.get(nr)
-    if len(args) > 1:
-        name = args[1]
-    else:
+    if name is None:
         name = input('Attribute name: ').strip()
     print("%s: %s" % (styled(name, 'yellow'), styled(bug[name], 'bold')))
 
 
-def cmd_set(handler, nr):
+def cmd_set(handler, nr, name=None, value=None):
     bug = handler.get(nr)
 
-    if len(args) > 1:
-        name = args[1]
-        value = args[2]
-    else:
+    if name is None:
         name = input('Attribute name: ').strip()
+    if value is None:
         value = input('Value: ').strip()
+
     bug[name] = value
     handler.save()
     print(colorize(unicode(bug)))
