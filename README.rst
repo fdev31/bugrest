@@ -35,7 +35,7 @@ Key features
 On the technical side
 ---------------------
 
-- Pure **Python**, no dependency required
+- Pure **Python**, no dependency required (Ok... ``docutils``, but misses it ? ;)
 - Simple *one file* design, keeping things short
 - **No database**, only the ``.rst`` file is used for storage
 
