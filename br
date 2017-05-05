@@ -640,15 +640,7 @@ def main():
     if fn is not None:
         fn(handler, *args)
     else:
-        print(""" Examples:
-    user@host:~$ %(prog)s
-        nicetohave      [ 0]  1 Would be very nice to have http ui
-                        [ 0]  2 Sometimes text disapears
-                        [ 0] *3 More documentation needed
-    user@host:~$ echo -e "test bug\\nsimple description\\n\\n" | %(prog)s new
-    user@host:~$ %(prog)s show | rst2pdf  > buglist.pdf
-                """ % dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
-        print(" Commands:")
+        print("\nSyntax: %s [command]\n" % sys.argv[0])
 
         docs = """\
     list: short listing of bugs (default action)

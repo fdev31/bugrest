@@ -30,6 +30,7 @@ Key features
     - Time tracker (counts the time spent on a given task)
 - Web Server allowing **real-time read only sharing** of the list
 - HTML export
+- Search tool (``grep``-like)
 
 On the technical side
 ---------------------
