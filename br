@@ -20,7 +20,6 @@ try:
 except ImportError:
     def colorize(txt, *a):
         return txt
-
     styled = colorize
 else:
     col_lex = pygments.lexers.get_lexer_by_name('rst')
@@ -56,8 +55,16 @@ except ImportError:
 CFGDIR = os.path.expanduser('~/.config/bugrest/')
 if not os.path.exists(CFGDIR):
     os.mkdir(CFGDIR)
-CFGFILE = os.path.join(CFGDIR, 'config.py')
+
 STYLEFILE = os.path.join(CFGDIR, 'style.css')
+if not os.path.exists(STYLEFILE):
+    import shutil
+    import bugrest
+    shutil.copy(
+            os.path.join(os.path.dirname(bugrest.__file__), 'style.css'),
+            STYLEFILE)
+
+CFGFILE = os.path.join(CFGDIR, 'config.py')
 
 HTTP_PORT = 5555
 BUGFILE = 'bugs.rst'
@@ -74,6 +81,7 @@ DEBUG=%s
 SOURCE_MGR=%s
 REVERSE_ORDER=%s
 HTTP_PORT=%s
+CSS=%s
 ''' % (
        BUGFILE,
        DONEFILE,
@@ -81,6 +89,7 @@ HTTP_PORT=%s
        SOURCE_MGR,
        REVERSE_ORDER,
        HTTP_PORT,
+       STYLEFILE,
     ))
 
 exec(open(CFGFILE).read())
