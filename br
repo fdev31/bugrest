@@ -18,17 +18,27 @@ try:
     import pygments
     import pygments.console
 except ImportError:
+    # stubs
     def colorize(txt, *a):
         return txt
     styled = colorize
 else:
-    col_lex = pygments.lexers.get_lexer_by_name('rst')
-    col_fmt = pygments.formatters.get_formatter_by_name('terminal')
-
     def colorize(txt):
+        """ Colorize *ReStructuredText* for a Terminal
+
+        :arg str txt: The *ReStructuredText* content
+        :returns: Colorized string"""
+        col_lex = pygments.lexers.get_lexer_by_name('rst')
+        col_fmt = pygments.formatters.get_formatter_by_name('terminal')
         return pygments.highlight(txt, col_lex, col_fmt)
 
     def styled(txt, how):
+        """ Apply a list of styles to some text
+
+        :arg str txt: text to be styled
+        :arg list(str) how: list of styles to apply
+        :returns: colorized string for terminal
+        """
         if not how:
             return txt
         if isinstance(how, (list, tuple)):
@@ -61,8 +71,8 @@ if not os.path.exists(STYLEFILE):
     import shutil
     import bugrest
     shutil.copy(
-            os.path.join(os.path.dirname(bugrest.__file__), 'style.css'),
-            STYLEFILE)
+        os.path.join(os.path.dirname(bugrest.__file__), 'style.css'),
+        STYLEFILE)
 
 CFGFILE = os.path.join(CFGDIR, 'config.py')
 
@@ -83,19 +93,20 @@ REVERSE_ORDER=%s
 HTTP_PORT=%s
 CSS=%s
 ''' % (
-       BUGFILE,
-       DONEFILE,
-       DEBUG,
-       SOURCE_MGR,
-       REVERSE_ORDER,
-       HTTP_PORT,
-       STYLEFILE,
+    BUGFILE,
+    DONEFILE,
+    DEBUG,
+    SOURCE_MGR,
+    REVERSE_ORDER,
+    HTTP_PORT,
+    STYLEFILE,
     ))
 
 exec(open(CFGFILE).read())
 
 
 def now(iso=True):
+    """ Returns a string representing current time """
     r = datetime.datetime.now()
     if iso:
         r = r.isoformat().rsplit('.', 1)[0]
@@ -103,8 +114,9 @@ def now(iso=True):
 
 
 def read_paragraph(prefix=''):
+    """ Reads a paragraph """
     blanklines = 0
-    for n in range(200):
+    for _ in range(200):
         text = input(prefix)
         if not text:
             blanklines += 1
@@ -120,6 +132,11 @@ def read_paragraph(prefix=''):
 
 
 class Bug:
+    """ Bug object, also used to store infos
+    A Bug .rst file is a list of Bug objects
+
+    The conversion happens in the :func:`load` method, called on init.
+    """
     line_start = 0
     field_line = 0
     nb_comments = 0
@@ -142,13 +159,13 @@ class Bug:
 
     def string_as_list(self, i):
         return " %s [%2d] %s%3s %s #%d" % (
-                styled(self['tags'].replace('#', ' ').center(20, ' '), 'teal'),
-                self.nb_comments,
-                styled('*', 'bold') if self.started else ' ',
-                styled(str(i+1), 'bold'),
-                styled(self.title, ['standout', 'yellow' if self.started else 'blue']),
-                self.id
-                )
+            styled(self['tags'].replace('#', ' ').center(20, ' '), 'teal'),
+            self.nb_comments,
+            styled('*', 'bold') if self.started else ' ',
+            styled(str(i+1), 'bold'),
+            styled(self.title, ['standout', 'yellow' if self.started else 'blue']),
+            self.id
+            )
 
     def __str__(self):
         r = []
@@ -195,6 +212,8 @@ class Bug:
 
 class Visitor(docutils.nodes.GenericNodeVisitor):
 
+    default_departure = None
+
     def __init__(self, doc, bugs):
         line_mapping = {}
         previous = None
@@ -235,6 +254,8 @@ class FileHandler:
         self.bugs_text = []
         self.mixed_priorities = False
         self.load()
+        self.line_stop = None
+        self.line_start = None
 
     @property
     def single_priority(self):
@@ -291,7 +312,7 @@ class FileHandler:
             indices = [i for i, l in enumerate(text_lines) if l.startswith('------')]
 
             start = 0
-            for i, section in enumerate(document):
+            for i in range(len(document)):
                 if i:
                     start = indices[i - 1] + 2
                     title = text_lines[start]
@@ -380,10 +401,208 @@ class FileHandler:
     def __len__(self):
         return len(self.bugs)
 
+# All commands
+
+
+def cmd_list(handler):
+    priority = None
+    show_priorities = not handler.single_priority
+    for i, bug in enumerate(handler):
+        if show_priorities and bug['priority'] != priority:
+            priority = bug['priority']
+            print("  prio %s" % priority)
+        print(bug.string_as_list(i))
+
+
+cmd_ls = cmd_list
+
+
+def cmd_show(handler, nr=None):
+    if nr is None:
+        for bug in reversed(list(handler)):
+            print(colorize(unicode(bug)))
+            print('')
+    else:
+        bug = handler.get(nr)
+        print(colorize(unicode(bug)))
+
+
+def cmd_grep(handler, *args):
+    for i, bug in enumerate(handler):
+        text = str(bug).lower()
+        count = 0
+        for pattern in args:
+            if pattern.lower() in text:
+                count += 1
+        if count == len(args):
+            print(bug.string_as_list(i))
+
+
+def cmd_untag(handler, bug_nr, tagname):
+    handler.get(bug_nr).rm_tag(tagname)
+    handler.save()
+
+
+def cmd_tag(handler, bug_nr, tagname=None):
+    if not tagname:
+        tagname = bug_nr
+        bug_nr = None
+
+    if bug_nr is not None:
+        bug = handler.get(bug_nr)
+        bug.add_tag(tagname)
+        handler.save()
+    else:
+        for i, bug in enumerate(handler):
+            if tagname in bug['tags']:
+                print(bug.string_as_list(i))
+
+
+def cmd_start(handler, nr=None):
+    if nr is None:
+        nr = input('nr: ')
+    handler.mark_started(nr)
+
+
+def cmd_stop(handler, nr=None):
+    if nr is None:
+        nr = input('nr: ')
+    handler.mark_stopped(nr)
+
+
+def cmd_remove(handler, nr=None):
+    if nr is None:
+        nr = input('nr: ')
+    handler.load(True)  # loads current fixed bugs list too
+    handler.mark_fixed(nr)
+
+
+cmd_fix = cmd_delete = cmd_rm = cmd_remove
+
+
+def cmd_add(handler, nr=None):
+    if nr is None:
+        nr = input('nr: ')
+    bug = handler.get(nr)
+
+    description = input('Title: ').rstrip()
+    comment_text = [description]
+    for line in read_paragraph('Comment: '):
+        comment_text.append('    ' + line)
+    bug.original_text += '\n\n' + ('\n'.join(comment_text).rstrip())
+    handler.save()
+
+
+def cmd_html(handler):
+    text = codecs.open(BUGFILE, encoding='utf-8').read()
+    text = text.rstrip().rstrip('-')
+    print(publish_string(text, writer_name='html', settings_overrides={
+        'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
+        }))
+
+
+def cmd_new(handler, title=None, description=None):
+    if title is None:
+        title = input('Title: ').rstrip()
+    bug = Bug(title)
+    if description:
+        full_description= description
+    else:
+        full_description = []
+        for line in read_paragraph('Description: '):
+            full_description.append(line)
+    full_description.append('')
+    bug.original_text = '\n' + '\n'.join(full_description)
+    bug['priority'] = '0'
+    handler.new_bug(bug)
+
+
+def cmd_unset(handler, nr, name=None):
+    bug = handler.get(nr)
+    if name is None:
+        name = input('Attribute name: ').strip()
+    if not bug:
+        raise RuntimeError("Bug not found")
+    del bug[name]
+    handler.save()
+    print(colorize(unicode(bug)))
+
+
+def cmd_get(handler, nr):
+    bug = handler.get(nr)
+    if len(args) > 1:
+        name = args[1]
+    else:
+        name = input('Attribute name: ').strip()
+    print("%s: %s" % (styled(name, 'yellow'), styled(bug[name], 'bold')))
+
+
+def cmd_set(handler, nr):
+    bug = handler.get(nr)
+
+    if len(args) > 1:
+        name = args[1]
+        value = args[2]
+    else:
+        name = input('Attribute name: ').strip()
+        value = input('Value: ').strip()
+    bug[name] = value
+    handler.save()
+    print(colorize(unicode(bug)))
+
+
+def cmd_serve(*_):
+    import socket
+    # python3 first:
+    try:
+        import socketserver
+    except ImportError:
+        import SocketServer as socketserver
+
+    try:
+        import http.server as SimpleHTTPServer
+    except ImportError:
+        import SimpleHTTPServer # python2
+
+
+    class BasicTCPServer(socketserver.ThreadingTCPServer):
+        def server_bind(self):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            socketserver.ThreadingTCPServer.server_bind(self)
+
+    class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+        def do_GET(self):
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+
+            handler = FileHandler()
+            handler.info.title_char = '#'
+            text = []
+
+            text.append(unicode(handler.info))
+            text.append(u'')
+
+            for bug in reversed(list(handler)):
+                text.append(unicode(bug))
+                text.append(u'')
+
+            self.wfile.write(publish_string('\n'.join(text), writer_name='html', settings_overrides={
+                'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
+                }))
+            return
+
+    httpd = BasicTCPServer(('0.0.0.0', HTTP_PORT), HTTPHandler)
+    try:
+        print("HTTP server on port %s" % HTTP_PORT)
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("... bye bye!")
+
 
 def main():
-
-    if SOURCE_MGR:
+    if SOURCE_MGR: # track .<vcs> files as root if option enabled
         fold = os.path.abspath(os.path.curdir)
         found = None
         current_path = ''
@@ -405,197 +624,14 @@ def main():
         cmd = sys.argv[1]
     except IndexError:
         cmd = 'list'
+        args = []
     else:
         args = sys.argv[2:]
 
-    if cmd == 'list' or cmd == 'ls':
-        priority = None
-        show_priorities = not handler.single_priority
-        for i, bug in enumerate(handler):
-            if show_priorities and bug['priority'] != priority:
-                priority = bug['priority']
-                print("  prio %s" % priority)
-            print(bug.string_as_list(i))
-    elif cmd.startswith('prio'):
-        prio = int(args[0])
-        for i, bug in enumerate(handler):
-            if bug.priority >= prio:
-                print(bug.string_as_list(i))
-    elif cmd.startswith('show'):
-        try:
-            nr = args[0]
-            bug = handler.get(nr)
-        except IndexError:
-            bug = None
+    fn = globals().get('cmd_' + cmd) # find function matching command
 
-        if bug is not None:
-            print(colorize(unicode(bug)))
-        else:
-            for bug in reversed(list(handler)):
-                print(colorize(unicode(bug)))
-                print('')
-    elif cmd == 'grep':
-        for i, bug in enumerate(handler):
-            text = str(bug).lower()
-            count = 0
-            for pattern in args:
-                if pattern.lower() in text:
-                    count += 1
-            if count == len(args):
-                print(bug.string_as_list(i))
-
-    elif cmd == 'untag':
-        bug_nr = args[0]
-        tagname = args[1]
-        handler.get(bug_nr).rm_tag(tagname)
-        handler.save()
-    elif cmd == 'tag':
-        try:
-            tagname = args[1]
-        except:
-            tagname = args[0]
-            bug_nr = None
-        else:
-            bug_nr = args[0]
-
-        if bug_nr is not None:
-            bug = handler.get(bug_nr)
-            bug.add_tag(tagname)
-            handler.save()
-        else:
-            for i, bug in enumerate(handler):
-                if tagname in bug['tags']:
-                    print(bug.string_as_list(i))
-    elif cmd == 'start':
-        try:
-            nr = args[0]
-        except IndexError:
-            nr = input('nr: ')
-        handler.mark_started(nr)
-    elif cmd == 'stop':
-        try:
-            nr = args[0]
-        except IndexError:
-            nr = input('nr: ')
-        handler.mark_stopped(nr)
-    elif cmd.startswith('del') or cmd == 'rm' or cmd.startswith('fix'):
-        try:
-            nr = args[0]
-        except IndexError:
-            nr = input('nr: ')
-        handler.load(True)  # loads current fixed bugs list too
-        handler.mark_fixed(nr)
-    elif cmd == 'add':
-        try:
-            nr = args[0]
-        except IndexError:
-            nr = input('nr: ')
-        bug = handler.get(nr)
-
-        description = input('Title: ').rstrip()
-        comment_text = [description]
-        for line in read_paragraph('Comment: '):
-            comment_text.append('    ' + line)
-        bug.original_text += '\n\n' + ('\n'.join(comment_text).rstrip())
-        handler.save()
-    elif cmd == 'html':
-        text = codecs.open(BUGFILE, encoding='utf-8').read()
-        text = text.rstrip().rstrip('-')
-        print(publish_string(text, writer_name='html', settings_overrides={
-            'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
-            }))
-    elif cmd == 'new':
-        title = input('Title: ').rstrip()
-        bug = Bug(title)
-        full_description = []
-        for line in read_paragraph('Description: '):
-            full_description.append(line)
-        full_description.append('')
-        bug.original_text = '\n' + '\n'.join(full_description)
-        bug['priority'] = '0'
-        handler.new_bug(bug)
-    elif cmd == 'unset':
-        nr = args[0]
-        bug = handler.get(nr)
-        if len(args) > 1:
-            name = args[1]
-        else:
-            name = input('Attribute name: ').strip()
-        if not bug:
-            raise RuntimeError("Bug not found")
-        del bug[name]
-        handler.save()
-        print(colorize(unicode(bug)))
-    elif cmd == 'get':
-        nr = args[0]
-        bug = handler.get(nr)
-        if len(args) > 1:
-            name = args[1]
-        else:
-            name = input('Attribute name: ').strip()
-        print("%s: %s" % (styled(name, 'yellow'), styled(bug[name], 'bold')))
-    elif cmd == 'set':
-        nr = args[0]
-        bug = handler.get(nr)
-
-        if len(args) > 1:
-            name = args[1]
-            value = args[2]
-        else:
-            name = input('Attribute name: ').strip()
-            value = input('Value: ').strip()
-        bug[name] = value
-        handler.save()
-        print(colorize(unicode(bug)))
-    elif cmd == 'serve':
-
-        import socket
-        # python3 first:
-        try:
-            import socketserver
-        except ImportError:
-            import SocketServer as socketserver
-
-        try:
-            import http.server as SimpleHTTPServer
-        except ImportError:
-            import SimpleHTTPServer # python2
-
-
-        class BasicTCPServer(socketserver.ThreadingTCPServer):
-            def server_bind(self):
-                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                socketserver.ThreadingTCPServer.server_bind(self)
-
-        class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-            def do_GET(self):
-
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-
-                handler = FileHandler()
-                handler.info.title_char = '#'
-                text = []
-
-                text.append(unicode(handler.info))
-                text.append(u'')
-
-                for bug in reversed(list(handler)):
-                    text.append(unicode(bug))
-                    text.append(u'')
-
-                self.wfile.write(publish_string('\n'.join(text), writer_name='html', settings_overrides={
-                    'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
-                    }))
-                return
-
-        httpd = BasicTCPServer(('0.0.0.0', HTTP_PORT), HTTPHandler)
-        try:
-            print("HTTP server on port %s" % HTTP_PORT)
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("... bye bye!")
+    if fn is not None:
+        fn(handler, *args)
     else:
         print(""" Examples:
     user@host:~$ %(prog)s
@@ -617,7 +653,7 @@ def main():
      add: [bug nr] | add some comment to a bug
    start: [bug nr] | starts counting elapsed time for this bug
     stop: [bug nr] | stops counting elapsed time for this bug
-     tag: [bug nr] [tag name] | adds a tag to a bug
+     tag: [bug nr] [tag name] OR [tag name] | adds a tag to a bug OR list matching tickets
    untag: [bug nr] [tag name] | removes a tag
      get: [bug nr] [attr name] | prints an attribute value
      set: [bug nr] [attr name] [value] | adds an attribute to a bug
@@ -633,6 +669,7 @@ def main():
                 args = ''
             print("%s %s%s" % (styled(name, 'yellow'), args, styled(desc.title(), 'blue')))
 
+
 if __name__ == '__main__':
     try:
         main()
@@ -640,4 +677,3 @@ if __name__ == '__main__':
         print(u'ERROR: ' + u' '.join(e.args))
     except ValueError as e:
         print(u'ERROR: Argument have incorrect value')
-
