@@ -5,7 +5,7 @@ from codecs import open
 
 setup(
     name="bugrest",
-    version="1.0.0",
+    version="1.0.1",
     author="Fabien Devaux",
     author_email="fdev31@gmail.com",
     license="MIT",
