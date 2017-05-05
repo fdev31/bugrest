@@ -326,7 +326,6 @@ class FileHandler:
 
         if not self.info:
             self.info = Bug('Tickets')
-        self.info.title_char = '#'
 
     def new_bug(self, bug):
         bug['created'] = now()
@@ -513,7 +512,7 @@ def main():
             full_description.append(description)
         full_description.append('')
         full_description.append('-'*10)
-        bug.original_text = '\n'.join(full_description)
+        bug.original_text = '\n' + '\n'.join(full_description)
         bug['priority'] = '0'
         handler.new_bug(bug)
     elif cmd == 'unset':
@@ -561,13 +560,23 @@ def main():
 
         class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             def do_GET(self):
+
                 self.send_response(200)
-                self.send_header('Content-type','text/html')
+                self.send_header('Content-type', 'text/html')
                 self.end_headers()
 
-                text = codecs.open(BUGFILE, encoding='utf-8').read()
-                text = text.rstrip().rstrip('-')
-                self.wfile.write(publish_string(text, writer_name='html', settings_overrides={
+                handler = FileHandler()
+                handler.info.title_char = '#'
+                text = []
+
+                text.append(unicode(handler.info))
+                text.append(u'')
+
+                for bug in reversed(list(handler)):
+                    text.append(unicode(bug))
+                    text.append(u'')
+
+                self.wfile.write(publish_string('\n'.join(text), writer_name='html', settings_overrides={
                     'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
                     }))
                 return
@@ -610,7 +619,7 @@ def main():
             if ' | ' in desc:
                 args, desc = desc.split(' | ', 1)
                 args = args
-                desc = ' '  + desc
+                desc = ' ' + desc
             else:
                 args = ''
             print("%s %s%s" % (styled(name, 'yellow'), args, styled(desc.title(), 'blue')))
