@@ -1,11 +1,12 @@
 BugRest
 #######
 
-Basic bugtracker that uses a plain text file (*ReStructuredText* compatible) as database.
+Friendly tool to keep track of list of things.
+It uses a plain text file (*ReStructuredText* compatible) as database, making it easy to share using version control systems. Can also run a web server to publish things to do.
 
-In theory it should run everywhere with Python2 or Python3 available.
+See some generated `Bug file`__
 
-See some generated `Bug file <bugs.rst>`_
+__ https://raw.githubusercontent.com/fdev31/loof/master/bugs.rst
 
 Screenshot
 ==========
@@ -49,4 +50,12 @@ Show description of some specific bug::
 Produce an html report::
 
     br html > bugs.html
+
+Start a web server on port 5555::
+
+    br serve
+
+Change priority of item #66 (using ``bugid`` instead of item position)::
+
+    br set #66 priority 10
 
