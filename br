@@ -59,6 +59,7 @@ if not os.path.exists(CFGDIR):
 CFGFILE = os.path.join(CFGDIR, 'config.py')
 STYLEFILE = os.path.join(CFGDIR, 'style.css')
 
+HTTP_PORT = 5555
 BUGFILE = 'bugs.rst'
 DONEFILE = 'fixed_bugs.rst'
 DEBUG = False
@@ -72,12 +73,14 @@ DONEFILE="%s"
 DEBUG=%s
 SOURCE_MGR=%s
 REVERSE_ORDER=%s
+HTTP_PORT=%s
 ''' % (
        BUGFILE,
        DONEFILE,
        DEBUG,
        SOURCE_MGR,
        REVERSE_ORDER,
+       HTTP_PORT,
     ))
 
 exec(open(CFGFILE).read())
@@ -546,6 +549,35 @@ def main():
         bug[name] = value
         handler.save()
         print(colorize(unicode(bug)))
+    elif cmd == 'serve':
+        import socket
+        import SocketServer
+        import SimpleHTTPServer
+
+        class BasicTCPServer(SocketServer.ThreadingTCPServer):
+            def server_bind(self):
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                SocketServer.ThreadingTCPServer.server_bind(self)
+
+        class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+
+                text = codecs.open(BUGFILE, encoding='utf-8').read()
+                text = text.rstrip().rstrip('-')
+                self.wfile.write(publish_string(text, writer_name='html', settings_overrides={
+                    'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
+                    }))
+                return
+
+        httpd = BasicTCPServer(('0.0.0.0', HTTP_PORT), HTTPHandler)
+        try:
+            print("HTTP server on port %s" % HTTP_PORT)
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("... bye bye!")
     else:
         print(""" Examples:
     user@host:~$ %(prog)s
@@ -557,11 +589,11 @@ def main():
                 """ % dict(prog=sys.argv[0].rsplit('/', 1)[-1]))
         print(" Commands:")
 
-        import re
         docs = """\
     list: short listing of bugs (default action)
     show: [bug nr] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
+   serve: publish the html content using HTTP server
      new: open a new bug
       rm: [bug nr] | remove some bug (mark as fixed)
      add: [bug nr] | add some comment to a bug
