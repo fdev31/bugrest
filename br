@@ -146,7 +146,7 @@ class Bug:
         r.append(self.title)
         r.append(self.title_char*len(self.title))
         r.append('')
-        for k, v in self.attributes.items():
+        for k, v in sorted(self.attributes.items()):
             r.append(':%s: %s' % (k, v))
         stripped = self.field_line - self.line_start
         r.append('\n'.join(self.original_text.split('\n')[stripped:]))
