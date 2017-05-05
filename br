@@ -112,6 +112,7 @@ class Bug:
     field_line = 0
     nb_comments = 0
     original_text = ''
+    title_char = '='
 
     def __init__(self, title):
         self.title = title.strip()
@@ -140,7 +141,7 @@ class Bug:
     def __str__(self):
         r = []
         r.append(self.title)
-        r.append("#"*len(self.title))
+        r.append(self.title_char*len(self.title))
         r.append('')
         for k, v in self.attributes.items():
             r.append(':%s: %s' % (k, v))
@@ -322,6 +323,7 @@ class FileHandler:
 
         if not self.info:
             self.info = Bug('Tickets')
+        self.info.title_char = '#'
 
     def new_bug(self, bug):
         bug['created'] = now()
