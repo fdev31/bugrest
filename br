@@ -239,10 +239,6 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
         self.line_mapping = line_mapping
         docutils.nodes.GenericNodeVisitor.__init__(self, doc)
 
-    def visit_definition_list_item(self, node):
-        b = self.line_mapping[node.line]
-        b.nb_comments += 1
-
     def visit_field(self, node):  # attributes
         b = self.line_mapping[node.line]
         b[node.children[0].astext().strip()] = node.children[1].astext().strip()
