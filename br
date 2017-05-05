@@ -664,7 +664,7 @@ def main():
                 desc = ' ' + desc
             else:
                 args = ''
-            print("%s %s%s" % (styled(name, 'yellow'), args, styled(desc.title(), 'blue')))
+            print("%s %s%s" % (styled(name, 'yellow'), args, styled(desc, 'blue')))
 
 
 if __name__ == '__main__':
