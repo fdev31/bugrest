@@ -1,0 +1,3 @@
+#!/bin/sh
+rm -fr build dist
+./setup.py sdist bdist_egg bdist_wheel upload
