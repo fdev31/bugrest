@@ -507,20 +507,10 @@ def main():
     elif cmd == 'new':
         title = input('Title: ').rstrip()
         bug = Bug(title)
-        blanklines = 0
         full_description = []
-        for n in range(200):
-            description = input('Description: ')
-            if not description:
-                blanklines += 1
-                if blanklines == 2:
-                    break
-                full_description.append('')
-                continue
-            blanklines = 0
-            full_description.append(description)
+        for line in read_paragraph('Description: '):
+            full_description.append(line)
         full_description.append('')
-        full_description.append('-'*10)
         bug.original_text = '\n' + '\n'.join(full_description)
         bug['priority'] = '0'
         handler.new_bug(bug)
