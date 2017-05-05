@@ -149,7 +149,6 @@ class Bug:
     """
     line_start = 0
     field_line = 0
-    nb_comments = 0
     original_text = ''
     title_char = '='
 
