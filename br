@@ -356,6 +356,7 @@ class FileHandler:
 
         if not self.info:
             self.info = Bug('Tickets')
+            self.info['total-count'] = 0
 
     def new_bug(self, bug):
         bug['created'] = now()
