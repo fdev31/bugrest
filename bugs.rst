@@ -1,4 +1,4 @@
-*BugRest* tickets
+*BugReST* tickets
 =================
 
-:count: 9
+:total-count: 9

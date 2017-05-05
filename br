@@ -338,8 +338,8 @@ class FileHandler:
 
     def new_bug(self, bug):
         bug['created'] = now()
-        bug['bugid'] = self.info['count']
-        self.info['count'] = int(self.info['count']) + 1
+        bug['bugid'] = self.info['total-count']
+        self.info['total-count'] = int(self.info['total-count']) + 1
         self.bugs.append(bug)
         self.save()
 
