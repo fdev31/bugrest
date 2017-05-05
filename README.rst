@@ -10,7 +10,7 @@ See some generated `Bug file <bugs.rst>`_
 Screenshot
 ==========
 
-.. image:: shot.png
+.. image:: https://github.com/fdev31/bugrest/blob/master/shot.png
 
 Usage
 =====
