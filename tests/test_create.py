@@ -15,19 +15,19 @@ def test_multi_creation(brpy, nr=10):
         create_bug("%3d-%s" % (n, time.time()))
     h = brpy.FileHandler()
     assert len(h) == nr
-    assert int(h.info['count']) == nr
+    assert int(h.info['total-count']) == nr
 
 def test_create_and_delete(brpy):
     for n in range(2):
         create_bug("First bug")
-        remove_bug(0)
+        remove_bug(1)
         create_bug("Second bug")
         create_bug("Third bug")
-        remove_bug(0)
+        remove_bug(1)
 
     h = brpy.FileHandler()
     assert len(h) == 2 # 2 bugs remains
-    assert int(h.info['count']) == 6 # 6 bugs where created in total
+    assert int(h.info['total-count']) == 6 # 6 bugs where created in total
 
 def test_iteration(brpy):
     for n in range(10):
@@ -46,7 +46,7 @@ def create_bug(title):
     b = br.Bug(title)
     b.original_text = BUG_TEMPLATE
     b['priority'] = '0'
-    b['bugid'] = h.info['count']
+    b['bugid'] = h.info['total-count']
     b['created'] = br.now()
     h.new_bug(b)
 
