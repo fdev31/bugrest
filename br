@@ -469,7 +469,7 @@ def main():
         except IndexError:
             nr = input('nr: ')
         handler.mark_stopped(nr)
-    elif cmd == 'del' or cmd == 'rm':
+    elif cmd.startswith('del') or cmd == 'rm' or cmd.startswith('fix'):
         try:
             nr = args[0]
         except IndexError:
@@ -549,14 +549,24 @@ def main():
         handler.save()
         print(colorize(unicode(bug)))
     elif cmd == 'serve':
-        import socket
-        import SocketServer
-        import SimpleHTTPServer
 
-        class BasicTCPServer(SocketServer.ThreadingTCPServer):
+        import socket
+        # python3 first:
+        try:
+            import socketserver
+        except ImportError:
+            import SocketServer as socketserver
+
+        try:
+            import http.server as SimpleHTTPServer
+        except ImportError:
+            import SimpleHTTPServer # python2
+
+
+        class BasicTCPServer(socketserver.ThreadingTCPServer):
             def server_bind(self):
                 self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                SocketServer.ThreadingTCPServer.server_bind(self)
+                socketserver.ThreadingTCPServer.server_bind(self)
 
         class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             def do_GET(self):

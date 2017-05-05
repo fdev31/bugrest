@@ -37,18 +37,3 @@ leading in::
      <--- Cannot embed stylesheet '/home/fab/.config/bugrest/style.css': No such file or directory. ---> 
 
 In the HTML...
-
---------------------------------------------------------------------------------
-
-Python3 support broken since ``serve`` command addition
-=======================================================
-
-:bugid: 7
-:created: 2017-05-05T19:35:11
-:priority: 10
-
-Everything in the title,
-try to run using python3 !
-
-Just the ``serve`` command is broken !
-    Happily ;)
