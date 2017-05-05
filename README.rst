@@ -1,7 +1,31 @@
 BugRest
 #######
 
-Friendly tool to keep track of list of things.
+Friendly and very light weight tool to keep track of list of things.
+Designed with bugs/tickets/GTD in mind
+
+Key features:
+
+- CLI (works in a terminal)
+- Simple text file used as storage (ReStructuredText)
+  - Git, Mercurial & co friendly
+  - Colorized in the terminal
+  - No need to edit the text file by hand
+- Automatically detects the "root" folder to use by finding  .hg, .svn or other version manager folder in parent directories
+- More advanced features not getting in your way if you don't need them:
+    - Priorities
+    - Tags
+    - Attributes
+    - Time tracker (counts the time spent on a given task)
+- Web Server allowing read only sharing of the list
+- HTML export
+
+On the technical side:
+
+- Pure python, no dependency required
+- Simple "one file" design, keeping things short
+- No database, only the .rst file is used for storage
+
 It uses a plain text file (*ReStructuredText* compatible) as database, making it easy to share using version control systems. Can also run a web server to publish things to do.
 
 See some generated `Bug file`__
