@@ -410,7 +410,7 @@ def cmd_list(handler):
     for i, bug in enumerate(handler):
         if show_priorities and bug['priority'] != priority:
             priority = bug['priority']
-            print("  prio %s" % priority)
+            print("                  p%s:" % priority)
         print(bug.string_as_list(i))
 
 
