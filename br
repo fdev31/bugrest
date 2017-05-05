@@ -12,6 +12,9 @@ from docutils.frontend import OptionParser
 from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 
+# black background:
+YELLOW = 'yellow'
+
 try:
     if not sys.stdout.isatty():
         raise ImportError
@@ -83,6 +86,7 @@ DONEFILE = 'fixed_bugs.rst'
 DEBUG = False
 SOURCE_MGR = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
+WHITE_BACKGROUND = False
 
 if not os.path.exists(CFGFILE):
     open(CFGFILE, 'w').write('''# sample config, Python syntax
@@ -93,6 +97,7 @@ SOURCE_MGR=%s
 REVERSE_ORDER=%s
 HTTP_PORT=%s
 CSS=%s
+WHITE_BACKGROUND=%s
 ''' % (
     BUGFILE,
     DONEFILE,
@@ -101,10 +106,14 @@ CSS=%s
     REVERSE_ORDER,
     HTTP_PORT,
     STYLEFILE,
+    WHITE_BACKGROUND,
     ))
 
 exec(open(CFGFILE).read())
 
+
+if WHITE_BACKGROUND:
+    YELLOW = 'red'
 
 def now(iso=True):
     """ Returns a string representing current time """
@@ -159,13 +168,12 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        return " %s [%2d] %s%3s %s #%d" % (
-            styled(self['tags'].replace('#', ' ').center(20, ' '), 'teal'),
-            self.nb_comments,
+        return "%s%3s %s #%d%s" % (
             styled('*', 'bold') if self.started else ' ',
             styled(str(i+1), 'bold'),
-            styled(self.title, ['standout', 'yellow' if self.started else 'blue']),
-            self.id
+            styled(self.title, ['standout', YELLOW if self.started else 'blue']),
+            self.id,
+            styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), 'teal'),
             )
 
     def __str__(self):
@@ -412,7 +420,7 @@ def cmd_list(handler):
     for i, bug in enumerate(handler):
         if show_priorities and bug['priority'] != priority:
             priority = bug['priority']
-            print("                  p%s:" % priority)
+            print(styled("P%s:" % priority, YELLOW))
         print(bug.string_as_list(i))
 
 
@@ -534,7 +542,7 @@ def cmd_get(handler, nr, name=None):
     bug = handler.get(nr)
     if name is None:
         name = input('Attribute name: ').strip()
-    print("%s: %s" % (styled(name, 'yellow'), styled(bug[name], 'bold')))
+    print("%s: %s" % (styled(name, YELLOW), styled(bug[name], 'bold')))
 
 
 def cmd_set(handler, nr, name=None, value=None):
@@ -666,7 +674,7 @@ def main():
                 desc = ' ' + desc
             else:
                 args = ''
-            print("%s %s%s" % (styled(name, 'yellow'), args, styled(desc, 'blue')))
+            print("%s %s%s" % (styled(name, YELLOW), args, styled(desc, 'blue')))
 
 
 if __name__ == '__main__':
@@ -676,3 +684,5 @@ if __name__ == '__main__':
         print(u'ERROR: ' + u' '.join(e.args))
     except ValueError as e:
         print(u'ERROR: Argument have incorrect value')
+    except TypeError as e:
+        print(u'ERROR: %s' % e.args[0].split(' ', 1)[1])
