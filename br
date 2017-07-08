@@ -203,7 +203,7 @@ class Bug:
 
     @property
     def priority(self):
-        return int(self.attributes.get('priority', 0))
+        return int(self.attributes.get('priority', '0').split(None, 1)[0])
 
     def __delitem__(self, name):
         try:
