@@ -518,10 +518,12 @@ def cmd_new(handler, title=None, description=None):
         title = input('Title: ').rstrip()
     bug = Bug(title)
     if description:
-        full_description= description
+        full_description = description
     else:
         full_description = []
         for line in read_paragraph('Description: '):
+            if not full_description:
+                line = line.strip()
             full_description.append(line)
     full_description.append('')
     bug.original_text = '\n' + '\n'.join(full_description)
