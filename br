@@ -412,11 +412,18 @@ class FileHandler:
 def cmd_list(handler):
     priority = None
     show_priorities = not handler.single_priority
+    max_bugid = 0
     for i, bug in enumerate(handler):
         if show_priorities and bug['priority'] != priority:
             priority = bug['priority']
             print(styled("P%s:" % priority, YELLOW))
+        max_bugid = max(max_bugid, bug.id)
         print(bug.string_as_list(i))
+    nb_fixed = 1+max_bugid-len(handler)
+    print("> Fixed %s bugs, latest is #%d"%(
+        styled(str(nb_fixed), 'yellow'),
+        max_bugid
+    ))
 
 
 cmd_ls = cmd_list
