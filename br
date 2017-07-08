@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+" A simple command-line ticket tracker "
 
 import os
 import sys
@@ -159,7 +160,7 @@ class Bug:
         self.attributes = {}
 
     @property
-    def id(self):
+    def uid(self):
         return int(self['bugid'] or -42)
 
     @property
@@ -171,7 +172,7 @@ class Bug:
             styled('*', 'bold') if self.started else ' ',
             styled(str(i+1), 'bold'),
             styled(self.title, ['standout', YELLOW if self.started else 'blue']),
-            self.id,
+            self.uid,
             styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), 'teal'),
             )
 
@@ -352,10 +353,10 @@ class FileHandler:
             if not done:  # sort bugs
                 if REVERSE_ORDER:
                     def sorting(x):
-                        return (-x.priority, x.id)
+                        return (-x.priority, x.uid)
                 else:
                     def sorting(x):
-                        return (x.priority, x.id)
+                        return (x.priority, x.uid)
                 source.sort(key=sorting)
 
         if not self.info:
@@ -368,6 +369,7 @@ class FileHandler:
         self.info[GLOBAL_COUNTER_NAME] = int(self.info[GLOBAL_COUNTER_NAME]) + 1
         self.bugs.append(bug)
         self.save()
+        return bug.uid
 
     def mark_started(self, bugid):
         bug = self.get(bugid)
@@ -417,7 +419,7 @@ def cmd_list(handler):
         if show_priorities and bug['priority'] != priority:
             priority = bug['priority']
             print(styled("P%s:" % priority, YELLOW))
-        max_bugid = max(max_bugid, bug.id)
+        max_bugid = max(max_bugid, bug.uid)
         print(bug.string_as_list(i))
     nb_fixed = 1+max_bugid-len(handler)
     print("> Fixed %s bugs, latest is #%d"%(
