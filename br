@@ -530,7 +530,7 @@ def cmd_new(handler, title=None, description=None):
     full_description.append('')
     bug.original_text = '\n' + '\n'.join(full_description)
     bug['priority'] = '0'
-    handler.new_bug(bug)
+    print("created #%d"% handler.new_bug(bug))
 
 
 def cmd_unset(handler, nr, name=None):
