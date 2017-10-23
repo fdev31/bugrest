@@ -421,11 +421,14 @@ def cmd_list(handler):
             print(styled("P%s:" % priority, YELLOW))
         max_bugid = max(max_bugid, bug.uid)
         print(bug.string_as_list(i))
-    nb_fixed = 1+max_bugid-len(handler)
-    print("> Fixed %s bugs, latest is #%d"%(
-        styled(str(nb_fixed), 'yellow'),
-        max_bugid
-    ))
+    if max_bugid == 0:
+        print("Nothing to show here!")
+    else:
+        nb_fixed = 1+max_bugid-len(handler)
+        print("> Fixed %s bugs, latest is #%d"%(
+            styled(str(nb_fixed), 'yellow'),
+            max_bugid
+        ))
 
 
 cmd_ls = cmd_list
