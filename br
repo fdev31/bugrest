@@ -428,6 +428,8 @@ def cmd_pull(handler, bugid):
     JID = 'jira-id'
     create_new = False
     bug_links = set([jbug.key])
+    url_prefix = jbug.permalink().rsplit('/', 1)[0]
+
     def linkify(bugid):
         bug_links.add(bugid)
         return "%s_" % bugid
@@ -460,7 +462,7 @@ def cmd_pull(handler, bugid):
         if 'outwardIssue' in link.raw:
             outwards.append(dict(link.raw['outwardIssue']))
 
-    for title, kind in ('From', inwards), ('To', outwards):
+    for title, kind in ('Implements', inwards), ('Is implemented by', outwards):
         if kind:
             all_text.append("\n%s:\n"%title)
             for link in kind:
@@ -473,7 +475,7 @@ def cmd_pull(handler, bugid):
     if bug_links:
         all_text.append('')
     for link in bug_links:
-        all_text.append('.. _%s: http://google.com?q=%s'%(link, link))
+        all_text.append('.. _%s: %s/%s'%(link, url_prefix, link))
 
     bug.original_text = '\n'.join(all_text)
     bug.line_start = 0
