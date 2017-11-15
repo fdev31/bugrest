@@ -427,7 +427,12 @@ def cmd_pull(handler, bugid):
     jbug = jira.issue(bugid)
     JID = 'jira-id'
     create_new = False
-    bug_title = "%s %s"%(jbug.key, jbug.fields.summary)
+    bug_links = set([jbug.key])
+    def linkify(bugid):
+        bug_links.add(bugid)
+        return "%s_" % bugid
+
+    bug_title = "%s %s"%(linkify(jbug.key), jbug.fields.summary)
     for b in handler:
         if b[JID] == bugid:
             bug = b
@@ -447,11 +452,28 @@ def cmd_pull(handler, bugid):
             "\n\n.. raw:: html\n\n%s\n" % '\n'.join("        "+l for l in jbug.fields.description.split('\n')),
             ''
             ]
+    inwards = []
+    outwards = []
     for link in jbug.fields.issuelinks:
         if 'inwardIssue' in link.raw:
-            all_text.append('- < {key} [{fields[issuetype][name]}] {fields[summary]} '.format(**dict(link.raw['inwardIssue'])))
+            inwards.append(dict(link.raw['inwardIssue']))
         if 'outwardIssue' in link.raw:
-            all_text.append('- > {key} [{fields[issuetype][name]}] {fields[summary]} '.format(**dict(link.raw['outwardIssue'])))
+            outwards.append(dict(link.raw['outwardIssue']))
+
+    for title, kind in ('From', inwards), ('To', outwards):
+        if kind:
+            all_text.append("\n%s:\n"%title)
+            for link in kind:
+                all_text.append('- [{bugtype}] {bugid} {summary} '.format(
+                    bugtype=link['fields']['issuetype']['name'],
+                    bugid=linkify(link['key']),
+                    summary=link['fields']['summary']
+                    ))
+
+    if bug_links:
+        all_text.append('')
+    for link in bug_links:
+        all_text.append('.. _%s: http://google.com?q=%s'%(link, link))
 
     bug.original_text = '\n'.join(all_text)
     bug.line_start = 0
