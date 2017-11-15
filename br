@@ -705,7 +705,7 @@ def main():
     if fn is not None:
         fn(handler, *args)
     else:
-        print("\nSyntax: %s [command]\n" % sys.argv[0])
+        print("\nSyntax: %s [filename.rst] [command]\n" % sys.argv[0])
 
         docs = """\
     list: short listing of bugs (default action)
