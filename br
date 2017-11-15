@@ -112,7 +112,6 @@ WHITE_BACKGROUND=%s
 
 exec(open(CFGFILE).read())
 
-
 if WHITE_BACKGROUND:
     YELLOW = 'red'
 
@@ -152,6 +151,9 @@ class Bug:
     field_line = 0
     original_text = ''
     title_char = '='
+    property_trans = {
+            'customfield_10947': 'action',
+            }
 
     def __init__(self, title):
         self.title = title.strip()
@@ -182,7 +184,7 @@ class Bug:
         r.append(self.title_char*len(self.title))
         r.append('')
         for k, v in sorted(self.attributes.items()):
-            r.append(':%s: %s' % (k, v))
+            r.append(':%s: %s' % (self.property_trans.get(k, k), v))
         stripped = self.field_line - self.line_start
         r.append('\n'.join(self.original_text.split('\n')[stripped:]))
         return '\n'.join(r).rstrip('\n')
@@ -409,6 +411,55 @@ class FileHandler:
         return len(self.bugs)
 
 # All commands
+
+def cmd_pull(handler, bugid):
+    # jiracli compatible
+    # TODO: stay compatible but don't depend on it
+    user_config_path = os.path.expanduser('~/.jiracli.ini')
+    from jiracli import jira_obj_get, config_get
+    from jira import JIRA
+    conf = config_get(user_config_path)
+    options = {
+        'server': conf.get('defaults', 'url'),
+        'verify': True,
+    }
+    jira = JIRA(options, basic_auth=(conf.get('defaults', 'user'),
+                                     conf.get('defaults', 'password')))
+    jbug = jira.issue(bugid)
+    JID = 'jira-id'
+    create_new = False
+    bug_title = "%s %s"%(jbug.key, jbug.fields.summary)
+    for b in handler:
+        if b[JID] == bugid:
+            bug = b
+            bug.title = bug_title
+            break
+    else:
+        bug = Bug(bug_title)
+        bug[JID] = bugid
+        create_new = True
+
+    for field in 'status issuetype customfield_10947'.split():
+        v = getattr(jbug.fields, field)
+        if isinstance(v, (list, tuple)):
+            v = v[0]
+        bug[field] = v
+    all_text = [
+            "\n\n.. raw:: html\n\n%s\n" % '\n'.join("        "+l for l in jbug.fields.description.split('\n')),
+            ''
+            ]
+    for link in jbug.fields.issuelinks:
+        if 'inwardIssue' in link.raw:
+            all_text.append('- < {key} [{fields[issuetype][name]}] {fields[summary]} '.format(**dict(link.raw['inwardIssue'])))
+        if 'outwardIssue' in link.raw:
+            all_text.append('- > {key} [{fields[issuetype][name]}] {fields[summary]} '.format(**dict(link.raw['outwardIssue'])))
+
+    bug.original_text = '\n'.join(all_text)
+    bug.line_start = 0
+    bug.field_line = 0
+    if create_new:
+        handler.new_bug(bug)
+    handler.save()
 
 
 def cmd_list(handler):
@@ -655,6 +706,7 @@ def main():
     list: short listing of bugs (default action)
     show: [bug nr] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
+    pull: pull a bug from JIRA
    serve: publish the html content using HTTP server
      new: open a new bug
       rm: [bug nr] | remove some bug (mark as fixed)
