@@ -168,9 +168,9 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        return "%s%3s %s #%d%s" % (
+        return "%s%s %s #%d%s" % (
             styled('*', 'bold') if self.started else ' ',
-            styled(str(i+1), 'bold'),
+            styled(str(i+1).ljust(3), 'bold'),
             styled(self.title, ['standout', YELLOW if self.started else 'blue']),
             self.uid,
             styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), 'teal'),
