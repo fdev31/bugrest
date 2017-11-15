@@ -413,7 +413,6 @@ class FileHandler:
 # All commands
 
 def cmd_pull(handler, bugid):
-    # jiracli compatible
     # TODO: stay compatible but don't depend on it
     user_config_path = os.path.expanduser('~/.jiracli.ini')
     from jiracli import jira_obj_get, config_get
@@ -685,15 +684,21 @@ def main():
         if found:
             os.chdir(found)
 
-    handler = FileHandler()
-
     try:
         cmd = sys.argv[1]
+        if cmd.endswith('.rst'):
+            global BUGFILE
+            BUGFILE = cmd
+            cmd = sys.argv[2]
+            sys.argv.pop(0)
+
     except IndexError:
         cmd = 'list'
         args = []
     else:
         args = sys.argv[2:]
+
+    handler = FileHandler()
 
     fn = globals().get('cmd_' + cmd) # find function matching command
 
