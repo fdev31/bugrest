@@ -70,12 +70,16 @@ if not os.path.exists(CFGDIR):
     os.mkdir(CFGDIR)
 
 STYLEFILE = os.path.join(CFGDIR, 'style.css')
-if not os.path.exists(STYLEFILE):
+JSCODEFILE = os.path.join(CFGDIR, 'code.js')
+if not os.path.exists(JSCODEFILE):
     import shutil
     import bugrest
     shutil.copy(
         os.path.join(os.path.dirname(bugrest.__file__), 'style.css'),
         STYLEFILE)
+    shutil.copy(
+        os.path.join(os.path.dirname(bugrest.__file__), 'code.js'),
+        JSCODEFILE)
 
 CFGFILE = os.path.join(CFGDIR, 'config.py')
 
@@ -98,6 +102,7 @@ SOURCE_MGR=%s
 REVERSE_ORDER=%s
 HTTP_PORT=%s
 CSS=%s
+JS=%s
 WHITE_BACKGROUND=%s
 ''' % (
     BUGFILE,
@@ -107,6 +112,7 @@ WHITE_BACKGROUND=%s
     REVERSE_ORDER,
     HTTP_PORT,
     STYLEFILE,
+    JSCODEFILE,
     WHITE_BACKGROUND,
     ))
 
@@ -613,6 +619,14 @@ def cmd_add(handler, nr=None):
 def cmd_html(handler):
     text = codecs.open(BUGFILE, encoding='utf-8').read()
     text = text.rstrip().rstrip('-')
+    text = """%s
+
+.. raw:: html
+
+    %s"""(
+        text,
+        '\n'.join('    '+line for line in open('data/code.js').readlines())
+    )
     print(publish_string(text, writer_name='html', settings_overrides={
         'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
         }))
@@ -704,6 +718,14 @@ def cmd_serve(handler, port=HTTP_PORT):
             for bug in reversed(list(handler)):
                 text.append(unicode(bug))
                 text.append(u'')
+
+            text.append(u'')
+            text.append(u'.. raw:: html')
+            text.append(u'')
+            text.append(u'    <script>')
+            text.extend(u'    '+line.rstrip() for line in open(JSCODEFILE).readlines())
+            text.append(u'    </script>')
+            print('\n'.join(text))
 
             self.wfile.write(publish_string('\n'.join(text), writer_name='html', settings_overrides={
                 'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
