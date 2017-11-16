@@ -861,6 +861,9 @@ def jira_config_get(config_path):
 # jiracli code ends here
 
 if __name__ == '__main__':
+    if DEBUG:
+        main()
+        raise SystemExit(0)
     try:
         main()
     except RuntimeError as e:
