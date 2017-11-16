@@ -19,7 +19,7 @@ Key features
 
 - **CLI** (works in a terminal)
 - Simple text file used as storage (**ReStructuredText**)
-    - **Git, Mercurial** & co friendly
+    - **SCM friendly**, support provided for git, mercurial and svn
     - **Colorized** in the terminal
     - No need to edit the text file by hand
 - Automatically detects the "root" folder to use by finding  .hg, .svn or other version manager folder in parent directories
