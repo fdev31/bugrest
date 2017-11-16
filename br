@@ -172,7 +172,7 @@ class Bug:
     def string_as_list(self, i):
         return "%s%s %s #%d%s" % (
             styled('*', 'bold') if self.started else ' ',
-            styled(str(i+1).ljust(3), 'bold'),
+            styled(str(i).ljust(3), 'bold'),
             styled(self.title, ['standout', YELLOW if self.started else 'blue']),
             self.uid,
             styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), 'teal'),
@@ -272,8 +272,9 @@ class FileHandler:
         return all(x.priority == 0 for x in self)
 
     def get(self, nr):
+        notfound_txt = 'Invalid bug id'
         if not nr:
-            raise RuntimeError('Wrong bug id')
+            raise RuntimeError(notfound_txt)
         if isinstance(nr, str) and not nr.isdigit():
             if nr[0] == '#':
                 k = 'bugid'
@@ -281,15 +282,18 @@ class FileHandler:
             elif ':' in nr:
                 k, v = nr.split(':')
             else:
-                raise RuntimeError('Wrong bug id')
+                raise RuntimeError(notfound_txt)
             for bug in self:
                 if bug[k] == v:
                     return bug
         else:
-            nr = int(nr) - 1
-            return self.bugs[nr]
+            nr = int(nr)
+            try:
+                return self.bugs[nr]
+            except IndexError:
+                raise RuntimeError(notfound_txt)
 
-        raise RuntimeError('Wrong bug id')
+        raise RuntimeError(notfound_txt)
 
     def save(self, done=False):
         if done:
@@ -376,8 +380,9 @@ class FileHandler:
 
     def new_bug(self, bug):
         bug['created'] = now()
-        bug['bugid'] = self.info[GLOBAL_COUNTER_NAME]
-        self.info[GLOBAL_COUNTER_NAME] = int(self.info[GLOBAL_COUNTER_NAME]) + 1
+        cnt = int(self.info[GLOBAL_COUNTER_NAME])
+        bug['bugid'] = cnt + 1
+        self.info[GLOBAL_COUNTER_NAME] = cnt + 1
         self.bugs.append(bug)
         self.save()
         return bug.uid
