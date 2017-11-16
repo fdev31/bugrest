@@ -421,7 +421,12 @@ class FileHandler:
 
 # All commands
 
-def cmd_pull(handler, bugid):
+def cmd_pull(handler, *bugids):
+    JID = 'jira-id'
+    if not bugids:
+        bugids = [b for b in (bug[JID] for bug in handler) if b]
+        print("Upading %d bugs"%len(bugids))
+
     # TODO: stay compatible but don't depend on it
     user_config_path = os.path.expanduser('~/.jiracli.ini')
     from jiracli import jira_obj_get, config_get
@@ -433,64 +438,67 @@ def cmd_pull(handler, bugid):
     }
     jira = JIRA(options, basic_auth=(conf.get('defaults', 'user'),
                                      conf.get('defaults', 'password')))
-    jbug = jira.issue(bugid)
-    JID = 'jira-id'
-    create_new = False
-    bug_links = set([jbug.key])
-    url_prefix = jbug.permalink().rsplit('/', 1)[0]
+    for bugid in bugids:
+        bugid = bugid.rstrip('_,')
+        if bugid.startswith(JID):
+            bugid = bugid[len(JID)+1:]
+        jbug = jira.issue(bugid)
+        create_new = False
+        bug_links = set([jbug.key])
+        url_prefix = jbug.permalink().rsplit('/', 1)[0]
 
-    def linkify(bugid):
-        bug_links.add(bugid)
-        return "%s_" % bugid
+        def linkify(bugid):
+            bug_links.add(bugid)
+            return "%s_" % bugid
 
-    bug_title = "%s %s"%(linkify(jbug.key), jbug.fields.summary)
-    for b in handler:
-        if b[JID] == bugid:
-            bug = b
-            bug.title = bug_title
-            break
-    else:
-        bug = Bug(bug_title)
-        bug[JID] = bugid
-        create_new = True
+        bug_title = "%s %s"%(linkify(jbug.key), jbug.fields.summary)
+        for b in handler:
+            if b[JID] == bugid:
+                bug = b
+                bug.title = bug_title
+                break
+        else:
+            bug = Bug(bug_title)
+            bug[JID] = bugid
+            create_new = True
 
-    for field in 'status issuetype customfield_10947'.split():
-        v = getattr(jbug.fields, field)
-        if isinstance(v, (list, tuple)):
-            v = v[0]
-        bug[field] = v
-    all_text = [
-            "\n\n.. raw:: html\n\n%s\n" % '\n'.join("        "+l for l in jbug.fields.description.split('\n')),
-            ''
-            ]
-    inwards = []
-    outwards = []
-    for link in jbug.fields.issuelinks:
-        if 'inwardIssue' in link.raw:
-            inwards.append(dict(link.raw['inwardIssue']))
-        if 'outwardIssue' in link.raw:
-            outwards.append(dict(link.raw['outwardIssue']))
+        for field in 'status issuetype customfield_10947'.split():
+            v = getattr(jbug.fields, field)
+            if isinstance(v, (list, tuple)):
+                v = v[0]
+            bug[field] = v
+        all_text = [
+                "\n\n.. raw:: html\n\n%s\n" % '\n'.join("        "+l for l in jbug.fields.description.split('\n')),
+                ''
+                ]
+        inwards = []
+        outwards = []
+        for link in jbug.fields.issuelinks:
+            if 'inwardIssue' in link.raw:
+                inwards.append(dict(link.raw['inwardIssue']))
+            if 'outwardIssue' in link.raw:
+                outwards.append(dict(link.raw['outwardIssue']))
 
-    for title, kind in ('Implements', outwards), ('Is implemented by', inwards):
-        if kind:
-            all_text.append("\n%s:\n"%title)
-            for link in kind:
-                all_text.append('- [{bugtype}] {bugid} {summary} '.format(
-                    bugtype=link['fields']['issuetype']['name'],
-                    bugid=linkify(link['key']),
-                    summary=link['fields']['summary']
-                    ))
+        for title, kind in ('Implements', outwards), ('Is implemented by', inwards):
+            if kind:
+                all_text.append("\n%s:\n"%title)
+                for link in sorted(kind, key=lambda x: x['key']):
+                    all_text.append('- [{bugtype}] {bugid} {summary} '.format(
+                        bugtype=link['fields']['issuetype']['name'],
+                        bugid=linkify(link['key']),
+                        summary=link['fields']['summary']
+                        ))
 
-    if bug_links:
-        all_text.append('')
-    for link in bug_links:
-        all_text.append('.. _%s: %s/%s'%(link, url_prefix, link))
+        if bug_links:
+            all_text.append('')
+        for link in bug_links:
+            all_text.append('.. _%s: %s/%s'%(link, url_prefix, link))
 
-    bug.original_text = '\n'.join(all_text)
-    bug.line_start = 0
-    bug.field_line = 0
-    if create_new:
-        handler.new_bug(bug)
+        bug.original_text = '\n'.join(all_text)
+        bug.line_start = 0
+        bug.field_line = 0
+        if create_new:
+            handler.new_bug(bug)
     handler.save()
 
 
