@@ -670,8 +670,9 @@ def cmd_set(handler, nr, name=None, value=None):
     print(colorize(unicode(bug)))
 
 
-def cmd_serve(*_):
+def cmd_serve(handler, port=HTTP_PORT):
     import socket
+    port = int(port)
     # python3 first:
     try:
         import socketserver
@@ -712,9 +713,9 @@ def cmd_serve(*_):
                 }))
             return
 
-    httpd = BasicTCPServer(('0.0.0.0', HTTP_PORT), HTTPHandler)
+    httpd = BasicTCPServer(('0.0.0.0', port), HTTPHandler)
     try:
-        print("HTTP server on port %s" % HTTP_PORT)
+        print("HTTP server on port %s" % port)
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("... bye bye!")
