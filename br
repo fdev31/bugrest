@@ -502,8 +502,10 @@ def cmd_list(handler):
         print("Nothing to show here!")
     else:
         nb_fixed = 1+max_bugid-len(handler)
-        print("> Fixed %s bugs, latest is #%d"%(
+        nb_active = len(handler)
+        print("> Fixed %s bugs, %s active, latest is #%d"%(
             styled(str(nb_fixed), 'yellow'),
+            styled(str(nb_active), 'brown'),
             max_bugid
         ))
 
