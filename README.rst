@@ -6,7 +6,7 @@ Designed with bugs/tickets/GTD in mind
 
 See some generated `Bug file`__
 
-__ https://github.com/fdev31/loof/master/bugs.rst
+__ https://github.com/fdev31/loof/blob/master/bugs.rst
 
 Screenshot
 ==========
