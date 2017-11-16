@@ -530,14 +530,16 @@ cmd_ls = cmd_list
 
 
 def cmd_show(handler, *nrs):
+    def process(bug):
+        print(colorize(unicode(bug).replace(u'raw:: html', u'code:: html')))
     if not nrs:
         for bug in reversed(list(handler)):
-            print(colorize(unicode(bug)))
+            process(bug)
             print('')
     else:
         for nr in nrs:
             bug = handler.get(nr)
-            print(colorize(unicode(bug)))
+            process(bug)
 
 
 def cmd_grep(handler, *args):
