@@ -465,7 +465,7 @@ def cmd_pull(handler, bugid):
         if 'outwardIssue' in link.raw:
             outwards.append(dict(link.raw['outwardIssue']))
 
-    for title, kind in ('Implements', inwards), ('Is implemented by', outwards):
+    for title, kind in ('Implements', outwards), ('Is implemented by', inwards):
         if kind:
             all_text.append("\n%s:\n"%title)
             for link in kind:
