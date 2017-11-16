@@ -619,14 +619,6 @@ def cmd_add(handler, nr=None):
 def cmd_html(handler):
     text = codecs.open(BUGFILE, encoding='utf-8').read()
     text = text.rstrip().rstrip('-')
-    text = """%s
-
-.. raw:: html
-
-    %s"""(
-        text,
-        '\n'.join('    '+line for line in open('data/code.js').readlines())
-    )
     print(publish_string(text, writer_name='html', settings_overrides={
         'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
         }))
