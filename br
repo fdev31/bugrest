@@ -189,15 +189,18 @@ class Bug:
         r.append('\n'.join(self.original_text.split('\n')[stripped:]))
         return '\n'.join(r).rstrip('\n')
 
-    def add_tag(self, tagname):
+    @property
+    def tags(self):
         mytags = self['tags'].split('#')
-        tags = set(x.strip() for x in mytags if x)
+        return set(x.strip() for x in mytags if x)
+
+    def add_tag(self, tagname):
+        tags = self.tags
         tags.add(tagname)
         self['tags'] = '#' + '#'.join(tags)
 
     def rm_tag(self, tagname):
-        mytags = self['tags'].split('#')
-        tags = set(x.strip() for x in mytags if x)
+        tags = self.tags
         tags.remove(tagname)
         if tags:
             self['tags'] = '#' + '#'.join(tags)
@@ -534,7 +537,17 @@ def cmd_untag(handler, bug_nr, tagname):
     handler.save()
 
 
-def cmd_tag(handler, bug_nr, tagname=None):
+def cmd_tag(handler, bug_nr=None, tagname=None):
+    if bug_nr is None:
+        # Just list
+        all_tags = set()
+        for bug in handler:
+            all_tags = all_tags.union(bug.tags)
+        for tag in sorted(all_tags):
+            print(" %s"%tag)
+        return
+
+
     if not tagname:
         tagname = bug_nr
         bug_nr = None
