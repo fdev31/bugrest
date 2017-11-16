@@ -274,10 +274,16 @@ class FileHandler:
     def get(self, nr):
         if not nr:
             raise RuntimeError('Wrong bug id')
-        if isinstance(nr, str) and nr[0] == '#':
-            bugid = nr[1:]
+        if isinstance(nr, str):
+            if nr[0] == '#':
+                k = 'bugid'
+                v = nr[1:]
+            elif ':' in nr:
+                k, v = nr.split(':')
+            else:
+                raise RuntimeError('Wrong bug id')
             for bug in self:
-                if bug['bugid'] == bugid:
+                if bug[k] == v:
                     return bug
         else:
             nr = int(nr) - 1
