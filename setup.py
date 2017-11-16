@@ -19,6 +19,9 @@ setup(
     keywords=[],
     install_requires=[
         'docutils >= 0.12',
+        'pygments',
+        'jira',
+        'six',
         ],
     extra_requires={
         'color': ['pygments'],

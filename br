@@ -274,7 +274,7 @@ class FileHandler:
     def get(self, nr):
         if not nr:
             raise RuntimeError('Wrong bug id')
-        if isinstance(nr, str):
+        if isinstance(nr, str) and not nr.isdigit():
             if nr[0] == '#':
                 k = 'bugid'
                 v = nr[1:]
@@ -428,16 +428,7 @@ def cmd_pull(handler, *bugids):
         print("Upading %d bugs"%len(bugids))
 
     # TODO: stay compatible but don't depend on it
-    user_config_path = os.path.expanduser('~/.jiracli.ini')
-    from jiracli import jira_obj_get, config_get
-    from jira import JIRA
-    conf = config_get(user_config_path)
-    options = {
-        'server': conf.get('defaults', 'url'),
-        'verify': True,
-    }
-    jira = JIRA(options, basic_auth=(conf.get('defaults', 'user'),
-                                     conf.get('defaults', 'password')))
+    jira = get_jira_object()
     for bugid in bugids:
         bugid = bugid.rstrip('_,')
         if bugid.startswith(JID):
@@ -527,14 +518,15 @@ def cmd_list(handler):
 cmd_ls = cmd_list
 
 
-def cmd_show(handler, nr=None):
-    if nr is None:
+def cmd_show(handler, *nrs):
+    if not nrs:
         for bug in reversed(list(handler)):
             print(colorize(unicode(bug)))
             print('')
     else:
-        bug = handler.get(nr)
-        print(colorize(unicode(bug)))
+        for nr in nrs:
+            bug = handler.get(nr)
+            print(colorize(unicode(bug)))
 
 
 def cmd_grep(handler, *args):
@@ -763,20 +755,20 @@ def main():
 
         docs = """\
     list: short listing of bugs (default action)
-    show: [bug nr] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
+    show: [bug id] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
-    pull: pull a bug from JIRA
+    pull: [bug id]+ pull all JIRA bugs or only the specified ones
    serve: publish the html content using HTTP server
      new: open a new bug
-      rm: [bug nr] | remove some bug (mark as fixed)
-     add: [bug nr] | add some comment to a bug
-   start: [bug nr] | starts counting elapsed time for this bug
-    stop: [bug nr] | stops counting elapsed time for this bug
-     tag: [bug nr] [tag name] OR [tag name] | adds a tag to a bug OR list matching tickets
-   untag: [bug nr] [tag name] | removes a tag
-     get: [bug nr] [attr name] | prints an attribute value
-     set: [bug nr] [attr name] [value] | adds an attribute to a bug
-   unset: [bug nr] [attr name] | removes an attribute
+      rm: [bug id] | remove some bug (mark as fixed)
+     add: [bug id] | add some comment to a bug
+   start: [bug id] | starts counting elapsed time for this bug
+    stop: [bug id] | stops counting elapsed time for this bug
+     tag: [bug id] [tag name] OR [tag name] | adds a tag to a bug OR list matching tickets
+   untag: [bug id] [tag name] | removes a tag
+     get: [bug id] [attr name] | prints an attribute value
+     set: [bug id] [attr name] [value] | adds an attribute to a bug
+   unset: [bug id] [attr name] | removes an attribute
     grep: [pattern] | list bugs containing given pattern(s)"""
         for doc in docs.split('\n'):
             name, desc = doc.split(': ', 1)
@@ -788,6 +780,80 @@ def main():
                 args = ''
             print("%s %s%s" % (styled(name, YELLOW), args, styled(desc, 'blue')))
 
+def get_jira_object():
+    import getpass
+    from six.moves import configparser
+    from six.moves import input
+    from jira import JIRA
+
+    conf = jira_config_get(os.path.expanduser('~/.jiracli.ini'))
+    options = {
+        'server': conf.get('defaults', 'url'),
+        'verify': True,
+    }
+    return JIRA(options, basic_auth=(conf.get('defaults', 'user'),
+                                     conf.get('defaults', 'password')))
+
+
+# Following code is a copy of jiracli/config.py file
+# Copyright 2017 Thomas Bechtold <thomasbechtold@jpberlin.de>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import getpass
+import os
+
+from six.moves import configparser
+from six.moves import input
+
+
+def _config_credentials_get():
+    """get username, password and url"""
+    user = input("username:")
+    password = getpass.getpass()
+    url = input("url:")
+    return user, password, url
+
+
+def jira_config_get(config_path):
+    """get the configuration"""
+    conf = configparser.RawConfigParser()
+    conf.read([config_path])
+    section_name = "defaults"
+    if not conf.has_section(section_name):
+        user, password, url = _config_credentials_get()
+        conf.add_section(section_name)
+        conf.set(section_name, "user", user)
+        conf.set(section_name, "password", password)
+        conf.set(section_name, "url", url)
+        with os.fdopen(os.open(
+                config_path, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
+            conf.write(f)
+
+    # some people prefer to not store the password on disk, so
+    # ask every time for the password
+    if not conf.has_option(section_name, "password"):
+        password = getpass.getpass()
+        conf.set(section_name, "password", password)
+
+    # some optional configuration options
+    if not conf.has_option(section_name, "verify"):
+        conf.set(section_name, "verify", "true")
+
+    return conf
+
+# jiracli code ends here
 
 if __name__ == '__main__':
     try:
