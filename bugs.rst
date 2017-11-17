@@ -1,7 +1,7 @@
 *BugReST* tickets
 =================
 
-:total-count: 14
+:total-count: 15
 
 --------------------------------------------------------------------------------
 
@@ -66,3 +66,28 @@ Add dropdown to change bugs order in serve view
 :bugid: 14
 :created: 2017-11-16T23:02:00
 :priority: 0
+
+--------------------------------------------------------------------------------
+
+JIRA: add support for comments
+==============================
+
+:bugid: 10
+:created: 2017-11-16T00:11:04
+:priority: 0
+
+Syncing JIRA comments would be nice
+
+--------------------------------------------------------------------------------
+
+Allow to extract bugs according to special criteria
+===================================================
+
+:bugid: 14
+:created: 2017-11-16T15:11:35
+:priority: 0
+
+Alternatively a filter could be nice
+
+--------------------------------------------------------------------------------
+
