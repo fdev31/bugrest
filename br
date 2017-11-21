@@ -95,6 +95,7 @@ USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
+JIRA_DISPLAY = False
 
 if not os.path.exists(CFGFILE):
     open(CFGFILE, 'w').write('''# sample config, Python syntax
@@ -546,22 +547,24 @@ def cmd_list(handler):
     priority = None
     show_priorities = not handler.single_priority
     max_bugid = 0
+    verbose = not (JIRA_DISPLAY or SHORT_DISPLAY)
     for i, bug in enumerate(handler):
-        if show_priorities and bug.priority != priority:
+        if verbose and show_priorities and bug.priority != priority:
             priority = bug.priority
             print(styled("P%s:" % priority, YELLOW))
         max_bugid = max(max_bugid, bug.uid)
         print(bug.string_as_list(i))
-    if max_bugid == 0 and len(handler) == 0:
+    if max_bugid == 0 and len(handler) == 0 and verbose:
         print("Nothing to show here!")
     else:
         nb_fixed = 1+max_bugid-len(handler)
         nb_active = len(handler)
-        print("> Fixed %s bugs, %s active, latest is #%d"%(
-            styled(str(nb_fixed), 'yellow'),
-            styled(str(nb_active), 'brown'),
-            max_bugid
-        ))
+        if verbose:
+            print("> Fixed %s bugs, %s active, latest is #%d"%(
+                styled(str(nb_fixed), 'yellow'),
+                styled(str(nb_active), 'brown'),
+                max_bugid
+            ))
 
 
 cmd_ls = cmd_list
