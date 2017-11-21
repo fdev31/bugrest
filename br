@@ -16,6 +16,7 @@ from docutils.parsers.rst import Parser
 # black background:
 YELLOW = 'yellow'
 
+JID = 'jira-id'
 try:
     if not sys.stdout.isatty():
         raise ImportError
@@ -209,6 +210,9 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
+        if JIRA_DISPLAY:
+            return '%s:%s'%(JID, self[JID])
+
         if SHORT_DISPLAY:
             return '#%s'%self.uid
 
@@ -469,7 +473,6 @@ class FileHandler:
 # All commands
 
 def cmd_pull(handler, *bugids):
-    JID = 'jira-id'
     if not bugids:
         bugids = [b for b in (bug[JID] for bug in handler) if b]
         print("Upading %d bugs"%len(bugids))
