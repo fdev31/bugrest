@@ -772,13 +772,19 @@ def cmd_serve(handler, port=HTTP_PORT):
 
             handler = FileHandler()
             handler.info.title_char = '#'
-            text = ['''.. raw:: html
-
-        <input type="text" id="filter_name" /> <input type="text" id="filter_value" /> <button onclick="run_filter()">Filter</button>
-            ''']
+            text = []
 
             text.append(unicode(handler.info))
-            text.append(u'')
+            text.append(u'''
+.. contents::
+    :local:
+            ''')
+
+            text.append('''.. raw:: html
+
+        <input type="text" id="filter_name" /><input type="text" id="filter_value" /><button onclick="run_filter()">Filter</button>
+        <input type="hidden" id="header_limit"></input>
+            ''')
 
             for bug in reversed(list(handler)):
                 text.append(unicode(bug))
