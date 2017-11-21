@@ -473,6 +473,20 @@ class FileHandler:
 
 # All commands
 
+def cmd_jdump(handler, bugid):
+    jira = get_jira_object()
+    bugid = bugid.rstrip('_,')
+    if bugid.startswith(JID):
+        bugid = bugid[len(JID)+1:]
+    jbug = jira.issue(bugid)
+    with Pager():
+        for field in dir(jbug.fields):
+            v = getattr(jbug.fields, field)
+            if field[0] == '_' or not v:
+                continue
+            print(styled("%s::"%field, 'bold'))
+            print("  %s"%v)
+
 def cmd_pull(handler, *bugids):
     if not bugids:
         bugids = [b for b in (bug[JID] for bug in handler) if b]
@@ -646,6 +660,17 @@ def cmd_remove(handler, nr=None):
 
 
 cmd_fix = cmd_delete = cmd_rm = cmd_remove
+
+
+def cmd_log(handler):
+    # templatable log
+    prio_n1 = None
+    for bug in handler:
+        if bug['jira-id'].startswith('ONEMUI') and bug['status'] != 'Rejected':
+            if prio_n1 != bug.priority:
+                print("")
+            print("https://jira.upc.biz/browse/%s [%s]"%(bug.title, bug['status']))
+            prio_n1 = bug.priority
 
 
 def cmd_add(handler, nr=None):
