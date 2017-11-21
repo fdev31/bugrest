@@ -190,6 +190,7 @@ class Bug:
     title_char = '='
     property_trans = {
             'customfield_10947': 'action',
+            'customfield_17130': 'TechBA',
             }
 
     def __init__(self, title):
