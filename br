@@ -93,6 +93,7 @@ SOURCE_MGR = True
 USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
+SHORT_DISPLAY = False
 
 if not os.path.exists(CFGFILE):
     open(CFGFILE, 'w').write('''# sample config, Python syntax
@@ -208,9 +209,12 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        return "%s%s %s #%d%s" % (
-            styled('*', 'bold') if self.started else ' ',
-            styled(str(i).ljust(3), 'bold'),
+        if SHORT_DISPLAY:
+            return '#%s'%self.uid
+
+        return "%s%s%s #%d%s" % (
+                styled('*', 'bold') if self.started else ' ',
+                styled(str(i).ljust(3), 'bold'),
             styled(self.title, ['standout', YELLOW if self.started else 'blue']),
             self.uid,
             styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), 'teal'),
@@ -787,6 +791,11 @@ def main():
                     found = current_path
         if found:
             os.chdir(found)
+
+    if '-q' in sys.argv:
+        global SHORT_DISPLAY
+        sys.argv.pop(sys.argv.index('-q'))
+        SHORT_DISPLAY = True
 
     try:
         cmd = sys.argv[1]
