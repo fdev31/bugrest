@@ -802,6 +802,10 @@ def main():
         global SHORT_DISPLAY
         sys.argv.pop(sys.argv.index('-q'))
         SHORT_DISPLAY = True
+    if '-j' in sys.argv:
+        global JIRA_DISPLAY
+        sys.argv.pop(sys.argv.index('-j'))
+        JIRA_DISPLAY = True
 
     try:
         cmd = sys.argv[1]
