@@ -90,6 +90,7 @@ BUGFILE = 'bugs.rst'
 DONEFILE = 'fixed_bugs.rst'
 DEBUG = False
 SOURCE_MGR = True
+USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 
@@ -100,6 +101,7 @@ DONEFILE="%s"
 DEBUG=%s
 SOURCE_MGR=%s
 REVERSE_ORDER=%s
+USE_PAGER=%s
 HTTP_PORT=%s
 CSS=%s
 JS=%s
@@ -110,6 +112,7 @@ WHITE_BACKGROUND=%s
     DEBUG,
     SOURCE_MGR,
     REVERSE_ORDER,
+    USE_PAGER,
     HTTP_PORT,
     STYLEFILE,
     JSCODEFILE,
@@ -120,6 +123,34 @@ exec(open(CFGFILE).read())
 
 if WHITE_BACKGROUND:
     YELLOW = 'red'
+
+from io import StringIO
+import subprocess
+
+class Pager:
+    def __init__(self, cmd=['less', '-iFRX']):
+        self.cmd = cmd
+
+    def __enter__(self):
+        self.oldstdout = sys.stdout
+        sys.stdout = StringIO()
+
+    def __exit__(self, *a):
+        sys.stdout.seek(0)
+        text_data = sys.stdout.read().encode('utf-8')
+        sys.stdout = self.oldstdout
+
+        p = subprocess.Popen(self.cmd, bufsize=1, stdin=subprocess.PIPE)
+        p.communicate(text_data)
+
+class NullPager:
+    def __enter__(self):
+        pass
+    def __exit__(self):
+        pass
+
+if not USE_PAGER:
+    Pager = NullPager
 
 def now(iso=True):
     """ Returns a string representing current time """
@@ -532,14 +563,16 @@ cmd_ls = cmd_list
 def cmd_show(handler, *nrs):
     def process(bug):
         print(colorize(unicode(bug).replace(u'raw:: html', u'code:: html')))
-    if not nrs:
-        for bug in reversed(list(handler)):
-            process(bug)
-            print('')
-    else:
-        for nr in nrs:
-            bug = handler.get(nr)
-            process(bug)
+
+    with Pager():
+        if not nrs:
+            for bug in reversed(list(handler)):
+                process(bug)
+                print('')
+        else:
+            for nr in nrs:
+                bug = handler.get(nr)
+                process(bug)
 
 
 def cmd_grep(handler, *args):
