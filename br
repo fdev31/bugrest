@@ -7,6 +7,7 @@ import re
 import sys
 import codecs
 import datetime
+import tempfile
 
 import docutils
 from docutils.core import publish_string
@@ -642,6 +643,14 @@ def cmd_list(handler):
 
 cmd_ls = cmd_list
 
+def cmd_edit(handler, *nrs):
+    tmpfile = tempfile.mkstemp(suffix='.rst')[1]
+    for nr in nrs:
+        bug = handler.get(nr)
+        open(tmpfile, 'w+').write(bug.text)
+        subprocess.call([os.environ['EDITOR'] or 'vi', tmpfile])
+        bug.text = open(tmpfile, 'r').read()
+    handler.save()
 
 def cmd_show(handler, *nrs):
     def process(bug):
