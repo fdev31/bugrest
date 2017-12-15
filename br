@@ -938,6 +938,8 @@ def main():
      new: open a new bug
       rm: [bug id] | remove some bug (mark as fixed)
      add: [bug id] | add some comment to a bug
+    edit: [bug id] | edit text of given bug(s)
+  filter: [pattern]| returns list of matching bugs (use -q for almost quiet output)
    start: [bug id] | starts counting elapsed time for this bug
     stop: [bug id] | stops counting elapsed time for this bug
      tag: [bug id] [tag name] OR [tag name] | adds a tag to a bug OR list matching tickets
