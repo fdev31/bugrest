@@ -982,6 +982,8 @@ def jira_config_get(config_path):
     conf = configparser.RawConfigParser()
     conf.read([config_path])
     section_name = "defaults"
+    if 'RESETLOGIN' in os.environ:
+        conf.remove_section(section_name)
     if not conf.has_section(section_name):
         user, password, url = _config_credentials_get()
         conf.add_section(section_name)
