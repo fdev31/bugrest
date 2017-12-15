@@ -259,9 +259,25 @@ class Bug:
         r.append('')
         for k, v in sorted(self.attributes.items()):
             r.append(':%s: %s' % (self.property_trans.get(k, k), v))
-        stripped = self.field_line - self.line_start
-        r.append('\n'.join(self.original_text.split('\n')[stripped:]))
+        r.append('')
+        r.append(self.text)
         return '\n'.join(r).rstrip('\n')
+
+    @property
+    def taglines(self):
+        return self.field_line - self.line_start
+
+    def get_text(self):
+        return '\n'.join(self.original_text.split('\n')[self.taglines+1:]) # +1 to ignore blank separator line
+
+    def set_text(self, val):
+        if not isinstance(val, (list, tuple)):
+            val = val.split('\n')
+
+        tag_lines = self.original_text.split('\n')[:self.taglines]
+        self.original_text = '\n'.join(tag_lines + [''] + val) # [''] to add blank line separator
+
+    text = property(get_text, set_text)
 
     @property
     def tags(self):
