@@ -203,6 +203,10 @@ def read_paragraph(prefix=''):
 # http://agateau.com/2015/docutils-snippets/
 
 
+JIRA_ACTION = 'customfield_10947'
+JIRA_TECHBA = 'customfield_17130'
+JIRA_IASTATUS = 'customfield_18033'
+
 class Bug:
     """ Bug object, also used to store infos
     A Bug .rst file is a list of Bug objects
@@ -214,8 +218,9 @@ class Bug:
     original_text = ''
     title_char = '='
     property_trans = {
-            'customfield_10947': 'action',
-            'customfield_17130': 'TechBA',
+            JIRA_ACTION : 'action',
+            JIRA_TECHBA : 'TechBA',
+            JIRA_IASTATUS : 'IA status',
             }
 
     def __init__(self, title):
