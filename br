@@ -68,6 +68,26 @@ try:
 except ImportError:
     print("python-dateutil package not installed, start & stop commands will not work!")
 
+try:
+    from html.parser import HTMLParser
+except ImportError:
+    from HTMLParser import HTMLParser
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
+
 CFGDIR = os.path.expanduser('~/.config/bugrest/')
 if not os.path.exists(CFGDIR):
     os.mkdir(CFGDIR)
@@ -525,6 +545,7 @@ def cmd_pull(handler, *bugids):
                 v = v[0]
             bug[field] = v
         all_text = [
+                "\n\n.. decoded text:\n\n%s\n" % '\n'.join("        "+l for l in strip_tags(jbug.fields.description).split('\n')),
                 "\n\n.. raw:: html\n\n%s\n" % '\n'.join("        "+l for l in jbug.fields.description.split('\n')),
                 ''
                 ]
