@@ -3,6 +3,7 @@
 " A simple command-line ticket tracker "
 
 import os
+import re
 import sys
 import codecs
 import datetime
@@ -16,6 +17,7 @@ from docutils.parsers.rst import Parser
 # black background:
 YELLOW = 'yellow'
 
+JTAG = re.compile('{[^}]+}')
 JID = 'jira-id'
 try:
     if not sys.stdout.isatty():
