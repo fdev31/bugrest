@@ -585,6 +585,21 @@ def cmd_pull(handler, *bugids):
     handler.save()
 
 
+def cmd_filter(handler, *filters):
+    var_sep = '='
+    compiled_filters = []
+    for filt_pat in filters:
+        if var_sep in filt_pat:
+            filt_key, filt_pat = (x.strip() for x in filt_pat.split(var_sep))
+            regex = re.compile(filt_pat)
+            if filt_key == 'title':
+                compiled_filters.append( lambda bug: regex.match(bug.title ) )
+            else:
+                compiled_filters.append( lambda bug: regex.match(bug[filt_key] ) )
+    for i, bug in enumerate(handler):
+        if all(f(bug) for f in compiled_filters):
+            print(bug.string_as_list(i))
+
 def cmd_list(handler):
     priority = None
     show_priorities = not handler.single_priority
