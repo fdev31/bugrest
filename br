@@ -611,6 +611,8 @@ def cmd_filter(handler, *filters):
             regex = re.compile(filt_pat)
             if filt_key == 'title':
                 compiled_filters.append( lambda bug: regex.match(bug.title ) )
+            elif filt_key == 'text':
+                compiled_filters.append( lambda bug: regex.match(bug.text) )
             else:
                 compiled_filters.append( lambda bug: regex.match(bug[filt_key] ) )
     for i, bug in enumerate(handler):
