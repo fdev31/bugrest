@@ -695,12 +695,10 @@ def cmd_stop(handler, nr=None):
     handler.mark_stopped(nr)
 
 
-def cmd_remove(handler, nr=None):
-    if nr is None:
-        nr = input('nr: ')
+def cmd_remove(handler, *nrs):
     handler.load(True)  # loads current fixed bugs list too
-    handler.mark_fixed(nr)
-
+    for nr in nrs:
+        handler.mark_fixed(nr)
 
 cmd_fix = cmd_delete = cmd_rm = cmd_remove
 
