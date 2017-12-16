@@ -646,13 +646,14 @@ def cmd_list(handler):
 cmd_ls = cmd_list
 
 def cmd_edit(handler, *nrs):
-    tmpfile = tempfile.mkstemp(suffix='.rst')[1]
+    tmpfile = tempfile.mkstemp(prefix="bredit-", suffix='.rst')[1]
     for nr in nrs:
         bug = handler.get(nr)
         open(tmpfile, 'w+').write(bug.text)
         subprocess.call([os.environ['EDITOR'] or 'vi', tmpfile])
         bug.text = open(tmpfile, 'r').read()
     handler.save()
+    os.unlink(tmpfile)
 
 def cmd_show(handler, *nrs):
     def process(bug):
