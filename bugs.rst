@@ -1,7 +1,7 @@
 *BugReST* tickets
 =================
 
-:total-count: 15
+:total-count: 16
 
 --------------------------------------------------------------------------------
 
@@ -13,6 +13,17 @@ More tests would be nice
 :priority: 0
 
 There is clearly a defficiency in the coverage
+
+--------------------------------------------------------------------------------
+
+JIRA: add support for comments
+==============================
+
+:bugid: 10
+:created: 2017-11-16T00:11:04
+:priority: 0
+
+Syncing JIRA comments would be nice
 
 --------------------------------------------------------------------------------
 
@@ -69,21 +80,10 @@ Add dropdown to change bugs order in serve view
 
 --------------------------------------------------------------------------------
 
-JIRA: add support for comments
-==============================
-
-:bugid: 10
-:created: 2017-11-16T00:11:04
-:priority: 0
-
-Syncing JIRA comments would be nice
-
---------------------------------------------------------------------------------
-
 Allow to extract bugs according to special criteria
 ===================================================
 
-:bugid: 14
+:bugid: 15
 :created: 2017-11-16T15:11:35
 :priority: 0
 
@@ -91,3 +91,11 @@ Alternatively a filter could be nice
 
 --------------------------------------------------------------------------------
 
+foo
+===
+
+:bugid: 16
+:created: 2017-12-16T02:01:30
+:priority: 0
+
+test
