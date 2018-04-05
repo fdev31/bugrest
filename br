@@ -129,8 +129,8 @@ SOURCE_MGR=%s
 REVERSE_ORDER=%s
 USE_PAGER=%s
 HTTP_PORT=%s
-CSS=%s
-JS=%s
+CSS="%s"
+JS="%s"
 WHITE_BACKGROUND=%s
 ''' % (
     BUGFILE,
