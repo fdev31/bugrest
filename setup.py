@@ -22,8 +22,7 @@ setup(
         ],
     extra_requires={
         'color': ['pygments'],
-        'jira',
-        'six',
+        'jira': ['jira', 'six'],
         },
     classifiers=[
         'Environment :: Console',

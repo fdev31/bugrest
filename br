@@ -109,6 +109,14 @@ HTTP_PORT=%s
 CSS=%s
 JS=%s
 WHITE_BACKGROUND=%s
+
+PLUGIN_jira={
+        'UID': 'johndoe',
+        'PROJECT' : 'X',
+        'FIELDS': {
+            'JIRA_ACTION' : 'customfield_10947'
+            }
+        }
 ''' % (
     BUGFILE,
     DONEFILE,
@@ -226,7 +234,8 @@ class Bug:
         r.append(self.title_char*len(self.title))
         r.append('')
         for k, v in sorted(self.attributes.items()):
-            r.append(':%s: %s' % (self.property_trans.get(k, k), v))
+            name = self.property_rtrans.get(k, k)
+            r.append(':%s: %s' % (name, v))
         r.append('')
         r.append(self.text)
         return '\n'.join(r).rstrip('\n')
@@ -807,11 +816,11 @@ def main():
     except ImportError:
         print("Jira plugin not found")
     else:
-        bugrest_jira.init({
-            'Bug': Bug,
-            })
+        bugrest_jira.init({'Bug': Bug}, {'config_path': CFGDIR, 'config': PLUGIN_jira})
         commands.update(bugrest_jira.commands)
         extra_docs['jira'] = [fn.__doc__ for fn in bugrest_jira.commands.values()]
+
+    Bug.property_rtrans = {v:k for k,v in Bug.property_trans.items()}
 
     fn = commands.get('cmd_' + cmd) # find function matching command
 
