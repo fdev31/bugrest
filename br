@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!/home/fab/pyenv/jira/bin/python
 # -*- encoding: utf-8 -*-
+
 " A simple command-line ticket tracker "
 
 import os
@@ -18,8 +19,6 @@ from docutils.parsers.rst import Parser
 # black background:
 YELLOW = 'yellow'
 
-JTAG = re.compile('{[^}]+}')
-JID = 'jira-id'
 try:
     if not sys.stdout.isatty():
         raise ImportError
@@ -68,27 +67,6 @@ try:
     import dateutil.parser
 except ImportError:
     print("python-dateutil package not installed, start & stop commands will not work!")
-
-try:
-    from html.parser import HTMLParser
-except ImportError:
-    from HTMLParser import HTMLParser
-
-class MLStripper(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.reset()
-        self.fed = []
-    def handle_data(self, d):
-        self.fed.append(d)
-    def get_data(self):
-        return ''.join(self.fed)
-
-def strip_tags(html):
-    s = MLStripper()
-    s.feed(html)
-    return s.get_data()
-
 CFGDIR = os.path.expanduser('~/.config/bugrest/')
 if not os.path.exists(CFGDIR):
     os.mkdir(CFGDIR)
@@ -118,7 +96,6 @@ USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
-JIRA_DISPLAY = False
 
 if not os.path.exists(CFGFILE):
     open(CFGFILE, 'w').write('''# sample config, Python syntax
@@ -129,8 +106,8 @@ SOURCE_MGR=%s
 REVERSE_ORDER=%s
 USE_PAGER=%s
 HTTP_PORT=%s
-CSS="%s"
-JS="%s"
+CSS=%s
+JS=%s
 WHITE_BACKGROUND=%s
 ''' % (
     BUGFILE,
@@ -204,10 +181,6 @@ def read_paragraph(prefix=''):
 # http://agateau.com/2015/docutils-snippets/
 
 
-JIRA_ACTION = 'customfield_10947'
-JIRA_TECHBA = 'customfield_17130'
-JIRA_IASTATUS = 'customfield_18033'
-
 class Bug:
     """ Bug object, also used to store infos
     A Bug .rst file is a list of Bug objects
@@ -218,11 +191,7 @@ class Bug:
     field_line = 0
     original_text = ''
     title_char = '='
-    property_trans = {
-            JIRA_ACTION : 'action',
-            JIRA_TECHBA : 'TechBA',
-            JIRA_IASTATUS : 'IA status',
-            }
+    property_trans = {}
 
     def __init__(self, title):
         self.title = title.strip()
@@ -239,8 +208,6 @@ class Bug:
         return 'started' in self.attributes
 
     def string_as_list(self, i):
-        if JIRA_DISPLAY:
-            return '%s:%s'%(JID, self[JID])
 
         if SHORT_DISPLAY:
             return '#%s'%self.uid
@@ -517,91 +484,6 @@ class FileHandler:
 
 # All commands
 
-def cmd_jdump(handler, bugid):
-    jira = get_jira_object()
-    bugid = bugid.rstrip('_,')
-    if bugid.startswith(JID):
-        bugid = bugid[len(JID)+1:]
-    jbug = jira.issue(bugid)
-    with Pager():
-        for field in dir(jbug.fields):
-            v = getattr(jbug.fields, field)
-            if field[0] == '_' or not v:
-                continue
-            print(styled("%s::"%field, 'bold'))
-            print("  %s"%v)
-
-def cmd_pull(handler, *bugids):
-    if not bugids:
-        bugids = [b for b in (bug[JID] for bug in handler) if b]
-        print("Upading %d bugs"%len(bugids))
-
-    jira = get_jira_object()
-    for bugid in bugids:
-        bugid = bugid.rstrip('_,')
-        if bugid.startswith(JID):
-            bugid = bugid[len(JID)+1:]
-        jbug = jira.issue(bugid)
-        create_new = False
-        bug_links = set([jbug.key])
-        url_prefix = jbug.permalink().rsplit('/', 1)[0]
-
-        def linkify(bugid):
-            bug_links.add(bugid)
-            return "%s_" % bugid
-
-        bug_title = "%s %s"%(linkify(jbug.key), jbug.fields.summary)
-        for b in handler:
-            if b[JID] == bugid:
-                bug = b
-                bug.title = bug_title
-                break
-        else:
-            bug = Bug(bug_title)
-            bug[JID] = bugid
-            create_new = True
-
-        for field in 'status issuetype customfield_10947'.split():
-            v = getattr(jbug.fields, field)
-            if isinstance(v, (list, tuple)):
-                v = v[0]
-            bug[field] = v
-        all_text = [
-                "\n\n.. decoded text:\n\n%s\n" % '\n'.join("        "+l for l in strip_tags(jbug.fields.description).split('\n')),
-                "\n\n.. raw:: html\n\n%s\n" % '\n'.join("        "+l for l in jbug.fields.description.split('\n')),
-                ''
-                ]
-        inwards = []
-        outwards = []
-        for link in jbug.fields.issuelinks:
-            if 'inwardIssue' in link.raw:
-                inwards.append(dict(link.raw['inwardIssue']))
-            if 'outwardIssue' in link.raw:
-                outwards.append(dict(link.raw['outwardIssue']))
-
-        for title, kind in ('Implements', outwards), ('Is implemented by', inwards):
-            if kind:
-                all_text.append("\n%s:\n"%title)
-                for link in sorted(kind, key=lambda x: x['key']):
-                    all_text.append('- [{bugtype}] {bugid} {summary} '.format(
-                        bugtype=link['fields']['issuetype']['name'],
-                        bugid=linkify(link['key']),
-                        summary=link['fields']['summary']
-                        ))
-
-        if bug_links:
-            all_text.append('')
-        for link in bug_links:
-            all_text.append('.. _%s: %s/%s'%(link, url_prefix, link))
-
-        bug.original_text = '\n'.join(all_text)
-        bug.line_start = 0
-        bug.field_line = 0
-        if create_new:
-            handler.new_bug(bug)
-    handler.save()
-
-
 def cmd_filter(handler, *filters):
     var_sep = '='
     compiled_filters = []
@@ -623,7 +505,7 @@ def cmd_list(handler):
     priority = None
     show_priorities = not handler.single_priority
     max_bugid = 0
-    verbose = not (JIRA_DISPLAY or SHORT_DISPLAY)
+    verbose = not (SHORT_DISPLAY)
     for i, bug in enumerate(handler):
         if verbose and show_priorities and bug.priority != priority:
             priority = bug.priority
@@ -646,14 +528,13 @@ def cmd_list(handler):
 cmd_ls = cmd_list
 
 def cmd_edit(handler, *nrs):
-    tmpfile = tempfile.mkstemp(prefix="bredit-", suffix='.rst')[1]
+    tmpfile = tempfile.mkstemp(suffix='.rst')[1]
     for nr in nrs:
         bug = handler.get(nr)
         open(tmpfile, 'w+').write(bug.text)
         subprocess.call([os.environ['EDITOR'] or 'vi', tmpfile])
         bug.text = open(tmpfile, 'r').read()
     handler.save()
-    os.unlink(tmpfile)
 
 def cmd_show(handler, *nrs):
     def process(bug):
@@ -730,18 +611,6 @@ def cmd_remove(handler, *nrs):
 
 cmd_fix = cmd_delete = cmd_rm = cmd_remove
 
-
-def cmd_log(handler):
-    # templatable log
-    prio_n1 = None
-    for bug in handler:
-        if bug['jira-id'].startswith('ONEMUI') and bug['status'] != 'Rejected':
-            if prio_n1 != bug.priority:
-                print("")
-            print("https://jira.upc.biz/browse/%s [%s]"%(bug.title, bug['status']))
-            prio_n1 = bug.priority
-
-
 def cmd_add(handler, nr=None):
     if nr is None:
         nr = input('nr: ')
@@ -760,7 +629,7 @@ def cmd_html(handler):
     text = text.rstrip().rstrip('-')
     print(publish_string(text, writer_name='html', settings_overrides={
         'stylesheet_path': STYLEFILE  # Replace with a pkg_resource thing or another hack to get data
-        }))
+        }).decode('utf-8'))
 
 
 def cmd_new(handler, title=None, description=None):
@@ -792,11 +661,21 @@ def cmd_unset(handler, nr, name=None):
     print(colorize(unicode(bug)))
 
 
-def cmd_get(handler, nr, name=None):
-    bug = handler.get(nr)
+def cmd_get(handler, nr, name=None, *args):
     if name is None:
-        name = input('Attribute name: ').strip()
-    print("%s: %s" % (styled(name, YELLOW), styled(bug[name], 'bold')))
+        name = nr
+        bugs = handler
+    else:
+        if args:
+            # accept nested commands
+            nrs = [nr, name] + list(args)[:-1]
+            name = args[-1]
+        else:
+            nrs = [nr]
+        bugs = (handler.get(nr) for bug in nrs)
+
+    for bug in bugs:
+        print("%s: %s # %s %s" % (styled(name, YELLOW), styled(bug[name], 'bold'), bug.title, styled("#%s"%bug.uid, 'teal')))
 
 
 def cmd_set(handler, nr, name=None, value=None):
@@ -904,10 +783,6 @@ def main():
         global SHORT_DISPLAY
         sys.argv.pop(sys.argv.index('-q'))
         SHORT_DISPLAY = True
-    if '-j' in sys.argv:
-        global JIRA_DISPLAY
-        sys.argv.pop(sys.argv.index('-j'))
-        JIRA_DISPLAY = True
 
     try:
         cmd = sys.argv[1]
@@ -925,29 +800,36 @@ def main():
 
     handler = FileHandler()
 
-    fn = globals().get('cmd_' + cmd) # find function matching command
+    commands = {k:v for k, v in globals().items() if k.startswith('cmd_')}
+    extra_docs = {}
+    try:
+        import bugrest_jira
+    except ImportError:
+        print("Jira plugin not found")
+    else:
+        bugrest_jira.init({
+            'Bug': Bug,
+            })
+        commands.update(bugrest_jira.commands)
+        extra_docs['jira'] = [fn.__doc__ for fn in bugrest_jira.commands.values()]
+
+    fn = commands.get('cmd_' + cmd) # find function matching command
 
     if fn is not None:
         fn(handler, *args)
     else:
-        print("""\nSyntax: %s [filename.rst] [-q] [command]
-
-Options
-      -q   quiet (only outputs bug #number)
-
-Commands""" % sys.argv[0])
+        print("\nSyntax: %s [filename.rst] [command]\n" % sys.argv[0])
 
         docs = """\
     list: short listing of bugs (default action)
     show: [bug id] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
-    pull: [bug id]+ | pull all JIRA bugs or only the specified ones
    serve: publish the html content using HTTP server
      new: open a new bug
-      rm: [bug id]+ | remove some bug (mark as fixed)
+      rm: [bug id] | remove some bug (mark as fixed)
      add: [bug id] | add some comment to a bug
     edit: [bug id] | edit text of given bug(s)
-  filter: [<attribute>=<regex> ]+ | returns list of matching bugs
+  filter: [pattern]| returns list of matching bugs (use -q for almost quiet output)
    start: [bug id] | starts counting elapsed time for this bug
     stop: [bug id] | stops counting elapsed time for this bug
      tag: [bug id] [tag name] OR [tag name] | adds a tag to a bug OR list matching tickets
@@ -955,7 +837,7 @@ Commands""" % sys.argv[0])
      get: [bug id] [attr name] | prints an attribute value
      set: [bug id] [attr name] [value] | adds an attribute to a bug
    unset: [bug id] [attr name] | removes an attribute
-    grep: [regex] | list bugs containing given pattern(s)"""
+    grep: [pattern] | list bugs containing given pattern(s)"""
         for doc in docs.split('\n'):
             name, desc = doc.split(': ', 1)
             if ' | ' in desc:
@@ -964,84 +846,15 @@ Commands""" % sys.argv[0])
                 desc = ' ' + desc
             else:
                 args = ''
-            print("%s %s%s" % (styled(name, YELLOW), args, styled(desc, 'blue')))
-
-def get_jira_object():
-    import getpass
-    from six.moves import configparser
-    from six.moves import input
-    from jira import JIRA
-
-    conf = jira_config_get(os.path.expanduser('~/.jiracli.ini'))
-    options = {
-        'server': conf.get('defaults', 'url'),
-        'verify': True,
-    }
-    return JIRA(options, basic_auth=(conf.get('defaults', 'user'),
-                                     conf.get('defaults', 'password')))
+            print("%s %s%s" % (styled("%10s"%name, YELLOW), args, styled(desc, 'blue')))
 
 
-# Following code is a copy of jiracli/config.py file
-# Copyright 2017 Thomas Bechtold <thomasbechtold@jpberlin.de>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+        for plugin_name, docs in extra_docs.items():
+            print("\n%s plugin commands:"%plugin_name)
+            for doc in docs:
+                name, desc = doc.split(': ', 1)
+                print("%s %s" % (styled("%10s"%name, YELLOW), styled(desc, 'blue')))
 
-import getpass
-import os
-
-from six.moves import configparser
-from six.moves import input
-
-
-def _config_credentials_get():
-    """get username, password and url"""
-    user = input("username:")
-    password = getpass.getpass()
-    url = input("url:")
-    return user, password, url
-
-
-def jira_config_get(config_path):
-    """get the configuration"""
-    conf = configparser.RawConfigParser()
-    conf.read([config_path])
-    section_name = "defaults"
-    if 'RESETLOGIN' in os.environ:
-        conf.remove_section(section_name)
-    if not conf.has_section(section_name):
-        user, password, url = _config_credentials_get()
-        conf.add_section(section_name)
-        conf.set(section_name, "user", user)
-        conf.set(section_name, "password", password)
-        conf.set(section_name, "url", url)
-        with os.fdopen(os.open(
-                config_path, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
-            conf.write(f)
-
-    # some people prefer to not store the password on disk, so
-    # ask every time for the password
-    if not conf.has_option(section_name, "password"):
-        password = getpass.getpass()
-        conf.set(section_name, "password", password)
-
-    # some optional configuration options
-    if not conf.has_option(section_name, "verify"):
-        conf.set(section_name, "verify", "true")
-
-    return conf
-
-# jiracli code ends here
 
 if __name__ == '__main__':
     if DEBUG:
