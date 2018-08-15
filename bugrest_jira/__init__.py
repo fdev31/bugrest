@@ -244,7 +244,10 @@ DESCRIPTION_TEMPLATE = None
 def init(env, opts):
     global DESCRIPTION_TEMPLATE, JPROJECT, JUID, JFIELDS, JTICKET_PFX, JCOMPONENT
     globals().update(env)
-    JFIELDS = opts['config']['FIELDS']
+    try:
+        JFIELDS = opts['config']['FIELDS']
+    except KeyError:
+        raise ValueError("FIELDS field is missing in configuration, check %s"%opts['config_path'])
     DESCRIPTION_TEMPLATE = open( os.path.join(opts['config_path'], opts['config']['TEMPLATE'])).read()
     JPROJECT = opts['config']['PROJECT']
     JUID = opts['config']['UID']

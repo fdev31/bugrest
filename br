@@ -1,4 +1,4 @@
-#!/home/fab/pyenv/jira/bin/python
+#!/bin/env python
 # -*- encoding: utf-8 -*-
 
 " A simple command-line ticket tracker "
@@ -811,17 +811,21 @@ def main():
 
     commands = {k:v for k, v in globals().items() if k.startswith('cmd_')}
     extra_docs = {}
-    try:
-        import bugrest_jira
-    except ImportError:
-        print("Jira plugin not found")
-    else:
-        bugrest_jira.init({'Bug': Bug}, {'config_path': CFGDIR, 'config': PLUGIN_jira})
-        commands.update(bugrest_jira.commands)
-        extra_docs['jira'] = [fn.__doc__ for fn in bugrest_jira.commands.values()]
+    for plugin in 'jira'.split():
+        try:
+            plug_mod = __import__('bugrest_%s'%plugin)
+        except ImportError:
+            print("%s plugin not found"%plugin.title())
+        else:
+            try:
+                plug_mod.init({'Bug': Bug}, {'config_path': CFGDIR, 'config': globals()['PLUGIN_'+plugin]})
+            except Exception as e:
+                print('Plugin "%s" failed to load: %s'%(plugin, e))
+            else:
+                commands.update(plug_mod.commands)
+                extra_docs[plugin] = [fn.__doc__ for fn in plug_mod.commands.values()]
 
     Bug.property_rtrans = {v:k for k,v in Bug.property_trans.items()}
-
     fn = commands.get('cmd_' + cmd) # find function matching command
 
     if fn is not None:
