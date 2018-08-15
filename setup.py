@@ -5,11 +5,11 @@ from codecs import open
 
 setup(
     name="bugrest",
-    version="1.1.1",
+    version="2.0.0",
     author="Fabien Devaux",
     author_email="fdev31@gmail.com",
     license="MIT",
-    packages=['bugrest'],
+    packages=['bugrest', 'bugrest_jira'],
     include_package_data=True,
     package_data={'bugrest': ['*.css']},
     description="Awesome minimalist command line ticket/bug tracker based on ReStructuredText",
@@ -19,12 +19,11 @@ setup(
     keywords=[],
     install_requires=[
         'docutils >= 0.12',
-        'pygments',
-        'jira',
-        'six',
         ],
     extra_requires={
         'color': ['pygments'],
+        'jira',
+        'six',
         },
     classifiers=[
         'Environment :: Console',
