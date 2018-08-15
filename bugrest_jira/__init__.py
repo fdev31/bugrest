@@ -77,7 +77,7 @@ def cmd_comments(handler, *bugids):
         jbug = jira.issue(bugid)
         for com in jbug.fields.comment.comments:
             print(JTAG.sub('', com.body))
-    import pdb; pdb.set_trace()
+#     import pdb; pdb.set_trace()
 
 
 def cmd_log(handler):
