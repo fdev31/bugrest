@@ -862,7 +862,7 @@ def main():
             print("\n%s plugin commands:"%plugin_name)
             for doc in docs:
                 name, desc = doc.split(': ', 1)
-                print("%s %s" % (styled("%10s"%name, YELLOW), styled(desc, 'blue')))
+                print("%s %s" % (styled("%10s"%name, YELLOW), desc))
 
 
 if __name__ == '__main__':
