@@ -683,7 +683,7 @@ def cmd_get(handler, nr, name=None, *args):
             nrs = [nr]
         bugs = (handler.get(nr) for bug in nrs)
 
-    for bug in bugs:
+    for bug in sorted(bugs, key=lambda o: (o[name], o.uid)):
         print("%s: %s # %s %s" % (styled(name, YELLOW), styled(bug[name], 'bold'), bug.title, styled("#%s"%bug.uid, 'teal')))
 
 
