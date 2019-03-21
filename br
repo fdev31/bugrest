@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import codecs
+import pprint
 import datetime
 import tempfile
 
@@ -96,6 +97,7 @@ USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
+PLUGINS = []
 
 if not os.path.exists(CFGFILE):
     open(CFGFILE, 'w').write('''# sample config, Python syntax
@@ -109,14 +111,7 @@ HTTP_PORT=%s
 CSS="%s"
 JS="%s"
 WHITE_BACKGROUND=%s
-
-PLUGIN_jira={
-        'UID': 'johndoe',
-        'PROJECT' : 'X',
-        'FIELDS': {
-            'JIRA_ACTION' : 'customfield_10947'
-            }
-        }
+PLUGINS=[]
 ''' % (
     BUGFILE,
     DONEFILE,
@@ -811,19 +806,24 @@ def main():
 
     commands = {k:v for k, v in globals().items() if k.startswith('cmd_')}
     extra_docs = {}
-    for plugin in 'jira'.split():
+    for plugin in PLUGINS:
         try:
             plug_mod = __import__('bugrest_%s'%plugin)
         except ImportError:
             print("%s plugin not found"%plugin.title())
         else:
-            try:
-                plug_mod.init({'Bug': Bug}, {'config_path': CFGDIR, 'config': globals()['PLUGIN_'+plugin]})
-            except Exception as e:
-                print('Plugin "%s" failed to load: %s'%(plugin, e))
+            g = globals()
+            entry_name = 'PLUGIN_'+plugin
+            if not entry_name in g:
+                print("%s is not configured, consider adding to your %s similar snippet:\n%s = %s"%(plugin, CFGFILE, entry_name, pprint.pformat(plug_mod.CFG.asDict())))
             else:
-                commands.update(plug_mod.commands)
-                extra_docs[plugin] = [fn.__doc__ for fn in plug_mod.commands.values()]
+                try:
+                    plug_mod.init({'Bug': Bug}, {'config': g[entry_name]})
+                except Exception as e:
+                    print('Plugin "%s" failed to load: %s\nYou may need to update %s'%(plugin, e, CFGFILE))
+                else:
+                    commands.update(plug_mod.commands)
+                    extra_docs[plugin] = [fn.__doc__ for fn in plug_mod.commands.values()]
 
     Bug.property_rtrans = {v:k for k,v in Bug.property_trans.items()}
     fn = commands.get('cmd_' + cmd) # find function matching command

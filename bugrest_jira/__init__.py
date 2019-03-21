@@ -1,27 +1,46 @@
 __all__ = ['commands']
-# TODO: handle jira configuration as mapping (properties per ticket type)
+# TODO: implement ticket-type specific field support
 
 import re
 
-JTAG = re.compile('{[^}]+}')
-JID = 'jira-id'
-JPROJECT = 'XX'
-JUID = 'johndoe'
-JCOMPONENT = 'CORE'
-JTICKET_PFX = 'http://'
+OUTWARD_TICKET = 'Implements'
+INWARD_TICKET = 'Is implemented by'
 
-# TODO: make metadata dependent on ticket type
-JFIELDS = {}
+# Stores the JIRA Config (Singleton class object, do not instanciate!)
+class CFG:
+    _pattern = re.compile('{[^}]+}')
+
+    id_name = 'jira-id'
+    project = 'XX'
+    component = 'CORE'
+    template = '/dev/null'
+
+    # read from ~/jiracli.ini
+    # user = 'johndoe'
+    #ticket_base_url = ''
+
+    # Common fields to all ticket types
+    fields = {}
+
+    @classmethod
+    def asDict(kls):
+        return dict(
+            (k,v) for (k,v) in kls.__dict__.items() if not (k[0] == '_' or isinstance(v, classmethod))
+            )
+
+    @classmethod
+    def update(kls, config):
+        for k, v in config.items():
+            setattr(kls, k, v)
 
 
 def cmd_jdump(handler, bugid):
     'jdump: dumps all low level data on given bug'
     jira = get_jira_object()
     bugid = bugid.rstrip('_,')
-    if bugid.startswith(JID):
-        bugid = bugid[len(JID)+1:]
+    if bugid.startswith(CFG.id_name):
+        bugid = bugid[len(CFG.id_name)+1:]
     jbug = jira.issue(bugid)
-#     import pdb; pdb.set_trace()
     with Pager():
         for field in dir(jbug.fields):
             v = getattr(jbug.fields, field)
@@ -30,54 +49,26 @@ def cmd_jdump(handler, bugid):
             print(styled("%s::"%field, 'bold'))
             print("  %s"%v)
 
-
 def cmd_jlink(handler, bug, do, which):
     'jlink: <ticket> <linktype> <other ticket>'
     jira = get_jira_object()
-    jira.create_issue_link(do, bug, which)
-
-
-def cmd_mkuitus(handler, *bugids):
-    'mkuitus: [bug id]+ create new JIRA ticket(s) on configured project implementing ticket passed as parameter'
-    jira = get_jira_object()
-
-    for bugid in bugids:
-        bugid = bugid.rstrip('_,')
-        pus = jira.issue(bugid)
-        epic = getattr(pus.fields, JFIELDS['EPIC'])
-        components = [{'name': c.name} for c in pus.fields.components]
-        components.append({'name': JCOMPONENT})
-#         pus.update(fields=dict(components=components))
-        issue_dict = {
-                'project': JPROJECT,
-                'issuetype': {'name': 'Technical User Story'},
-                'assignee': {'name': JUID},
-                JFIELDS['TYPE']: {'value': 'Business'},
-                JFIELDS['EPIC']: epic,
-                'summary': '[CPE UI] %s'%pus.fields.summary,
-                'description': DESCRIPTION_TEMPLATE,
-                }
-        new_issue = jira.create_issue(fields=issue_dict)
-        print("%s implements %s"%(new_issue.key, pus.key))
-        jira.create_issue_link('Implements', new_issue.key, pus.key)
-
+    jira.create_issue_link(do, bug.rstrip('_,'), which.rstrip('_,'))
 
 def cmd_comments(handler, *bugids):
     'comments: [bug id]+ show comments on all JIRA bugs or only the specified ones (WIP)'
     if not bugids:
-        bugids = [b for b in (bug[JID] for bug in handler) if b]
+        bugids = [b for b in (bug[CFG.id_name] for bug in handler) if b]
         print("Upading %d bugs"%len(bugids))
         input('Are you sure? (^C to cancel) ')
     jira = get_jira_object()
 
     for bugid in bugids:
         bugid = bugid.rstrip('_,')
-        if bugid.startswith(JID):
-            bugid = bugid[len(JID)+1:]
+        if bugid.startswith(CFG.id_name):
+            bugid = bugid[len(CFG.id_name)+1:]
         jbug = jira.issue(bugid)
         for com in jbug.fields.comment.comments:
-            print(JTAG.sub('', com.body))
-#     import pdb; pdb.set_trace()
+            print(CFG._pattern.sub('', com.body))
 
 
 def cmd_log(handler):
@@ -85,44 +76,25 @@ def cmd_log(handler):
     # templatable log
     prio_n1 = None
     for bug in handler:
-        if bug['jira-id'].startswith(JPROJECT) and bug['status'] != 'Rejected':
+        if bug['jira-id'].startswith(CFG.project) and bug['status'] != 'Rejected':
             if prio_n1 != bug.priority:
                 print("")
-            print("%s%s [%s]"%(JTICKET_PFX, bug.title, bug['status']))
+            print("%s%s [%s]"%(CFG.ticket_base_url, bug.title, bug['status']))
             prio_n1 = bug.priority
 
-
-def cmd_update(handler, *bugids):
-    'update: [bug id]+ execute custom UPDATE code (edit source) on all JIRA bugs or only the specified ones'
-    if not bugids:
-        bugids = [b for b in (bug[JID] for bug in handler) if b]
-        print("Upading %d bugs"%len(bugids))
-        input('Are you sure? (^C to cancel) ')
-    jira = get_jira_object()
-
-    for bugid in bugids:
-        bugid = bugid.rstrip('_,')
-        if bugid.startswith(JID):
-            bugid = bugid[len(JID)+1:]
-        print(bugid)
-        jbug = jira.issue(bugid)
-
-        # Update logic here:
-        # customfield_15731 == UI Assessment
-        jbug.update(customfield_15731 = {'value': 'To be assessed'})
 
 def cmd_pull(handler, *bugids):
     'pull: [bug id]+ pull all JIRA bugs or only the specified ones'
     if not bugids:
-        bugids = [b for b in (bug[JID] for bug in handler) if b]
+        bugids = [b for b in (bug[CFG.id_name] for bug in handler) if b]
         print("Upading %d bugs"%len(bugids))
 
     jira = get_jira_object()
     for bugid in bugids:
         bugid = bugid.rstrip('_,')
         print(bugid)
-        if bugid.startswith(JID):
-            bugid = bugid[len(JID)+1:]
+        if bugid.startswith(CFG.id_name):
+            bugid = bugid[len(CFG.id_name)+1:]
         jbug = jira.issue(bugid)
         create_new = False
         bug_links = set([jbug.key])
@@ -134,17 +106,17 @@ def cmd_pull(handler, *bugids):
 
         bug_title = "%s %s"%(linkify(jbug.key), jbug.fields.summary)
         for b in handler:
-            if b[JID] == bugid:
+            if b[CFG.id_name] == bugid:
                 bug = b
                 bug.title = bug_title
                 break
         else:
             bug = Bug(bug_title)
-            bug[JID] = bugid
+            bug[CFG.id_name] = bugid
             create_new = True
 
         fields = 'status issuetype fixVersions'.split()
-        fields.extend(JFIELDS.values())
+        fields.extend(CFG.fields.values())
         for field in fields:
             v = getattr(jbug.fields, field)
             if isinstance(v, (list, tuple)):
@@ -172,7 +144,7 @@ def cmd_pull(handler, *bugids):
             if 'outwardIssue' in link.raw:
                 outwards.append(dict(link.raw['outwardIssue']))
 
-        for title, kind in ('Implements', outwards), ('Is implemented by', inwards):
+        for title, kind in (OUTWARD_TICKET, outwards), (INWARD_TICKET, inwards):
             if kind:
                 all_text.append("\n%s:\n"%title)
                 for link in sorted(kind, key=lambda x: x['key']):
@@ -198,6 +170,9 @@ commands = {k:v for k,v in globals().items() if k.startswith('cmd_')}
 
 _jira_instance = None
 
+def get_jira_config():
+    return setup_jira_config(os.path.expanduser('~/.jiracli.ini'))
+
 def get_jira_object():
     global _jira_instance
     if _jira_instance is None:
@@ -205,8 +180,7 @@ def get_jira_object():
         from six.moves import configparser
         from six.moves import input
         from jira import JIRA
-
-        conf = jira_config_get(os.path.expanduser('~/.jiracli.ini'))
+        conf = get_jira_config()
         options = {
             'server': conf.get('defaults', 'url'),
             'verify': True,
@@ -239,24 +213,26 @@ class MLStripper(HTMLParser):
         return ''.join(self.fed)
 
 
-DESCRIPTION_TEMPLATE = None
-
 def init(env, opts):
-    global DESCRIPTION_TEMPLATE, JPROJECT, JUID, JFIELDS, JTICKET_PFX, JCOMPONENT
     globals().update(env)
+
     try:
-        JFIELDS = opts['config']['FIELDS']
+        CFG.fields.update(opts['config']['fields'])
     except KeyError:
-        raise ValueError("FIELDS field is missing in configuration, check %s"%opts['config_path'])
-    DESCRIPTION_TEMPLATE = open( os.path.join(opts['config_path'], opts['config']['TEMPLATE'])).read()
-    JPROJECT = opts['config']['PROJECT']
-    JUID = opts['config']['UID']
-    JUID = opts['config']['COMPONENT']
-    JTICKET_PFX = opts['config']['TICKETPREFIXURL']
-    Bug.property_trans.update(JFIELDS)
+        raise ValueError('configuration is missing', dict(template=CFG.asDict()))
+    try:
+        CFG.template = open(opts['config']['template']).read()
+    except OSError as e:
+        raise ValueError('Unable to open the template: %s'%e)
+    CFG.update(opts['config'])
+    jcfg = get_jira_config()
+    CFG.ticket_base_url = jcfg.get('defaults', 'url') + 'browse/'
+    CFG.user = jcfg.get('defaults', 'user')
+    Bug.property_trans.update(CFG.fields)
 
-DESCRIPTION_TEMPLATE = None
+################################################################################
 
+################################################################################
 # Following code is a copy of jiracli/config.py file
 # Copyright 2017 Thomas Bechtold <thomasbechtold@jpberlin.de>
 #
@@ -287,7 +263,7 @@ def _config_credentials_get():
     return user, password, url
 
 
-def jira_config_get(config_path):
+def setup_jira_config(config_path):
     """get the configuration"""
     conf = configparser.RawConfigParser()
     conf.read([config_path])
