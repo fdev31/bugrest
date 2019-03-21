@@ -12,8 +12,6 @@ class CFG:
 
     id_name = 'jira-id'
     project = 'XX'
-    component = 'CORE'
-    template = '/dev/null'
 
     # read from ~/jiracli.ini
     # user = 'johndoe'
