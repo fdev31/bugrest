@@ -806,6 +806,9 @@ def main():
 
     commands = {k:v for k, v in globals().items() if k.startswith('cmd_')}
     extra_docs = {}
+
+    shared_plugins = {}
+
     for plugin in PLUGINS:
         try:
             plug_mod = __import__('bugrest_%s'%plugin)
@@ -814,14 +817,21 @@ def main():
         else:
             g = globals()
             entry_name = 'PLUGIN_'+plugin
-            if not entry_name in g:
-                print("%s is not configured, consider adding to your %s similar snippet:\n%s = %s"%(plugin, CFGFILE, entry_name, pprint.pformat(plug_mod.CFG.asDict())))
+            default_conf = plug_mod.CFG.asDict()
+            if not entry_name in g and default_conf:
+                print("%s is not configured, consider adding to your %s similar snippet:\n%s = %s"%(plugin, CFGFILE, entry_name, pprint.pformat(default_conf)))
             else:
                 try:
-                    plug_mod.init({'Bug': Bug}, {'config': g[entry_name]})
+                    plug_mod.init({'Bug': Bug, 'PLUGINS': shared_plugins}, {'config': g[entry_name] if default_conf else default_conf})
                 except Exception as e:
                     print('Plugin "%s" failed to load: %s\nYou may need to update %s'%(plugin, e, CFGFILE))
                 else:
+                    shared_plugins[plugin] = plug_mod
+                    conflicts = set(commands).intersection(plug_mod.commands)
+                    if conflicts:
+                        for conflict in conflicts:
+                            print('WARNING! "%s" is provided by %s and %s plugins, enable only one!'%(conflict[4:], plugin, commands[conflict].__code__.co_filename.rsplit(os.path.sep, 2)[1]))
+
                     commands.update(plug_mod.commands)
                     extra_docs[plugin] = [fn.__doc__ for fn in plug_mod.commands.values()]
 
