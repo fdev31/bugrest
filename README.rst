@@ -1,5 +1,5 @@
-BugRest
-#######
+BetterRest
+##########
 
 Friendly and very light weight tool to keep track of list of things.
 Designed with bugs/tickets/GTD in mind
@@ -47,8 +47,8 @@ Usage
 The command line tool is `br` and works in the current directory.
 If you don't like this, feel free to edit `br` file and change the following lines to absolute paths::
 
-    BUGFILE = 'bugs.rst'
-    DONEFILE = 'fixed_bugs.rst'
+    BUGFILE = '/home/john/tickets.rst'
+    DONEFILE = '/home/john/done.rst'
 
 
 List bugs::

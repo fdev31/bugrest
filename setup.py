@@ -4,15 +4,15 @@ from setuptools import setup
 from codecs import open
 
 setup(
-    name="bugrest",
-    version="2.0.0",
+    name="betterRest",
+    version="1.0.0",
     author="Fabien Devaux",
     author_email="fdev31@gmail.com",
     license="MIT",
-    packages=['bugrest', 'bugrest_jira'],
+    packages=['betterRest', 'betterRest_jira', 'betterRest_jira_example'],
     include_package_data=True,
-    package_data={'bugrest': ['*.css']},
-    description="Awesome minimalist command line ticket/bug tracker based on ReStructuredText",
+    package_data={'betterRest': ['*.css']},
+    description="Awesome minimalist command line ticket/bug tracker based on ReStructuredText (former bugrest)",
     long_description=open('README.rst', encoding='utf-8').read(),
     scripts=['br'],
     url='https://github.com/fdev31/bugrest',

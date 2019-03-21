@@ -68,7 +68,7 @@ try:
     import dateutil.parser
 except ImportError:
     print("python-dateutil package not installed, start & stop commands will not work!")
-CFGDIR = os.path.expanduser('~/.config/bugrest/')
+CFGDIR = os.path.expanduser('~/.config/betterRest/')
 if not os.path.exists(CFGDIR):
     os.mkdir(CFGDIR)
 
@@ -76,12 +76,12 @@ STYLEFILE = os.path.join(CFGDIR, 'style.css')
 JSCODEFILE = os.path.join(CFGDIR, 'code.js')
 if not os.path.exists(JSCODEFILE):
     import shutil
-    import bugrest
+    import betterRest
     shutil.copy(
-        os.path.join(os.path.dirname(bugrest.__file__), 'style.css'),
+        os.path.join(os.path.dirname(betterRest.__file__), 'style.css'),
         STYLEFILE)
     shutil.copy(
-        os.path.join(os.path.dirname(bugrest.__file__), 'code.js'),
+        os.path.join(os.path.dirname(betterRest.__file__), 'code.js'),
         JSCODEFILE)
 
 CFGFILE = os.path.join(CFGDIR, 'config.py')
@@ -815,7 +815,7 @@ def main():
 
     for plugin in PLUGINS:
         try:
-            plug_mod = __import__('bugrest_%s'%plugin)
+            plug_mod = __import__('betterRest_%s'%plugin)
         except ImportError:
             print("%s plugin not found"%plugin.title())
         else:
