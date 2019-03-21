@@ -10,8 +10,8 @@ jira_plugin = {}
 
 def init(env, opts):
     # must be loaded after the jira plugin !!
-    jira_plugin['mod'] = env['PLUGINS']['jira']
-    jira_plugin['cfg'] =  env['PLUGINS']['jira'].CFG
+    jira_plugin['mod'] = env['plugins']['jira']
+    jira_plugin['cfg'] =  env['plugins']['jira'].CFG
 
 def get_jira_object():
     return jira_plugin['mod'].get_jira_object()
