@@ -830,6 +830,7 @@ def main():
                 else:
                     shared_plugins[plugin] = plug_mod
                     conflicts = set(commands).intersection(plug_mod.commands)
+                    conflicts.difference_update(set(getattr(plug_mod, 'overrides', [])))
                     if conflicts:
                         for conflict in conflicts:
                             print('WARNING! "%s" is provided by %s and %s plugins, enable only one!'%(conflict[4:], plugin, commands[conflict].__code__.co_filename.rsplit(os.path.sep, 2)[1]))
