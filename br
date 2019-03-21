@@ -532,6 +532,9 @@ def cmd_list(handler):
 
 cmd_ls = cmd_list
 
+def cmd_cfg(handler):
+        subprocess.call([os.environ['EDITOR'] or 'vi', CFGFILE])
+
 def cmd_edit(handler, *nrs):
     tmpfile = tempfile.mkstemp(suffix='.rst')[1]
     for nr in nrs:
@@ -858,6 +861,7 @@ def main():
         print("\nSyntax: %s [filename.rst] [command]\n" % sys.argv[0])
 
         docs = """\
+     cfg: edits the configuration file
     list: short listing of bugs (default action)
     show: [bug id] | detailed listing of bugs, ReStructuredText format (save as .rst or .txt)
     html: same as above, but in html format
