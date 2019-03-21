@@ -826,7 +826,10 @@ def main():
                 print("%s is not configured, consider adding to your %s similar snippet:\n%s = %s"%(plugin, CFGFILE, entry_name, pprint.pformat(default_conf)))
             else:
                 try:
-                    plug_mod.init({'Bug': Bug, 'plugins': shared_plugins, 'all_commands': commands}, {'config': g[entry_name] if default_conf else default_conf})
+                    plug_mod.Bug = Bug
+                    plug_mod.plugins = shared_plugins
+                    plug_mod.all_commands = commands
+                    plug_mod.init({'config': g[entry_name] if default_conf else default_conf})
                 except Exception as e:
                     print('Plugin "%s" failed to load: %s\nYou may need to update %s'%(plugin, e, CFGFILE))
                     print("Details here:\n%s"%("="*80))

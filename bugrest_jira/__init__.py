@@ -229,17 +229,11 @@ class MLStripper(HTMLParser):
         return ''.join(self.fed)
 
 
-def init(env, opts):
-    globals().update(env)
-
+def init(opts):
     try:
         CFG.fields.update(opts['config']['fields'])
     except KeyError:
         raise ValueError('configuration is missing', dict(template=CFG.asDict()))
-    try:
-        CFG.template = open(opts['config']['template']).read()
-    except OSError as e:
-        raise ValueError('Unable to open the template: %s'%e)
     CFG.update(opts['config'])
     jcfg = get_jira_config()
     CFG.ticket_base_url = jcfg.get('defaults', 'url') + 'browse/'
