@@ -841,6 +841,16 @@ def main():
     if fn is not None:
         fn(handler, *args)
     else:
+        def render_doc(doc):
+            name, desc = doc.split(': ', 1)
+            if ' | ' in desc:
+                args, desc = desc.split(' | ', 1)
+                args = args
+                desc = ' ' + desc
+            else:
+                args = ''
+            print("%s %s%s" % (styled("%10s"%name, YELLOW), styled(args, 'blue'), desc))
+
         print("\nSyntax: %s [filename.rst] [command]\n" % sys.argv[0])
 
         docs = """\
@@ -862,21 +872,12 @@ def main():
    unset: [bug id] [attr name] | removes an attribute
     grep: [pattern] | list bugs containing given pattern(s)"""
         for doc in docs.split('\n'):
-            name, desc = doc.split(': ', 1)
-            if ' | ' in desc:
-                args, desc = desc.split(' | ', 1)
-                args = args
-                desc = ' ' + desc
-            else:
-                args = ''
-            print("%s %s%s" % (styled("%10s"%name, YELLOW), args, styled(desc, 'blue')))
-
+            render_doc(doc)
 
         for plugin_name, docs in extra_docs.items():
-            print("\n%s plugin commands:"%plugin_name)
+            print("\n%s::"%plugin_name)
             for doc in docs:
-                name, desc = doc.split(': ', 1)
-                print("%s %s" % (styled("%10s"%name, YELLOW), desc))
+                render_doc(doc)
 
 
 if __name__ == '__main__':

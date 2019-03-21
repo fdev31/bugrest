@@ -50,12 +50,12 @@ def cmd_jdump(handler, bugid):
             print("  %s"%v)
 
 def cmd_jlink(handler, bug, do, which):
-    'jlink: <ticket> <linktype> <other ticket>'
+    'jlink: <ticket> <linktype> <other ticket> | makes a relationship between two tickets'
     jira = get_jira_object()
     jira.create_issue_link(do, bug.rstrip('_,'), which.rstrip('_,'))
 
 def cmd_comments(handler, *bugids):
-    'comments: [bug id]+ show comments on all JIRA bugs or only the specified ones (WIP)'
+    'comments: [bug id]+ | show comments on all JIRA bugs or only the specified ones (WIP)'
     if not bugids:
         bugids = [b for b in (bug[CFG.id_name] for bug in handler) if b]
         print("Upading %d bugs"%len(bugids))
@@ -72,7 +72,7 @@ def cmd_comments(handler, *bugids):
 
 
 def cmd_log(handler):
-    'log: [bug id]+ execute custom LOG code (edit source) on all JIRA bugs or only the specified ones'
+    'log: [bug id]+ | execute custom LOG code (edit source) on all JIRA bugs or only the specified ones'
     # templatable log
     prio_n1 = None
     for bug in handler:
@@ -84,7 +84,7 @@ def cmd_log(handler):
 
 
 def cmd_pull(handler, *bugids):
-    'pull: [bug id]+ pull all JIRA bugs or only the specified ones'
+    'pull: [bug id]+ | pull all JIRA bugs or only the specified ones'
     if not bugids:
         bugids = [b for b in (bug[CFG.id_name] for bug in handler) if b]
         print("Upading %d bugs"%len(bugids))
