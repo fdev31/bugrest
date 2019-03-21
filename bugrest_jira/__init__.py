@@ -190,12 +190,28 @@ def get_jira_object():
 
     return _jira_instance
 
-
-
-def strip_tags(html):
+def strip_tags(html, max_blank_lines=2):
     s = MLStripper()
     s.feed(html)
-    return s.get_data()
+
+    if max_blank_lines:
+        blank_count = 0
+        clean_text = []
+
+        for line in s.get_data().split('\n'):
+            line = line.rstrip()
+            this_is_blank = len(line)
+            if this_is_blank and blank_count >= max_blank_lines:
+                continue
+            clean_text.append(line)
+            if this_is_blank:
+                blank_count += 1
+            else:
+                blank_count = 0
+
+        return '\n'.join(clean_text)
+    else:
+        return s.get_data()
 
 try:
     from html.parser import HTMLParser
