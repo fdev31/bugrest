@@ -170,10 +170,12 @@ class Pager:
         p = subprocess.Popen(self.cmd, bufsize=1, stdin=subprocess.PIPE)
         p.communicate(text_data)
 
+
 class NullPager:
     def __enter__(self):
         pass
-    def __exit__(self):
+
+    def __exit__(self, *a):
         pass
 
 if not USE_PAGER:
@@ -200,6 +202,7 @@ def read_paragraph(prefix=''):
             continue
         blanklines = 0
         yield text
+
 
 # For later if needed ? to create documents from nodes...
 # http://agateau.com/2015/docutils-snippets/
