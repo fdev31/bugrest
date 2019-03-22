@@ -38,15 +38,3 @@ Add dropdown to change bugs order in serve view
 :bugid: 14
 :created: 2017-11-16T23:02:00
 :priority: 0
-
---------------------------------------------------------------------------------
-
-Pomodoro icons support
-======================
-
-:bugid: 17
-:created: 2019-03-22T21:34:10
-:priority: 0
-:started: 2019-03-22T21:34:42
-
-useful for start & stop command instead of the current "*"

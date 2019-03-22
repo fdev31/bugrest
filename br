@@ -86,6 +86,7 @@ if not os.path.exists(JSCODEFILE):
 
 CFGFILE = os.path.join(CFGDIR, 'config.py')
 
+# Set default config
 GLOBAL_COUNTER_NAME = 'total-count'
 REVERSE_ORDER = False
 HTTP_PORT = 5555
@@ -97,10 +98,10 @@ USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
+USE_ICONS = {'ACTIVE': ' ', 'STOPPED': ' ', 'INACTIVE': '  '}
 PLUGINS = []
 
-if not os.path.exists(CFGFILE):
-    open(CFGFILE, 'w').write('''# sample config, Python syntax
+SAMPLE_CONFIG = '''# betterRest configuration file
 BUGFILE="%s"
 DONEFILE="%s"
 DEBUG=%s
@@ -112,6 +113,7 @@ CSS="%s"
 JS="%s"
 WHITE_BACKGROUND=%s
 PLUGINS=%s
+USE_ICONS=%r
 ''' % (
     BUGFILE,
     DONEFILE,
@@ -124,12 +126,30 @@ PLUGINS=%s
     JSCODEFILE,
     WHITE_BACKGROUND,
     PLUGINS,
-    ))
+    USE_ICONS,
+    )
+
+if not os.path.exists(CFGFILE):
+    open(CFGFILE, 'w').write(SAMPLE_CONFIG)
+del SAMPLE_CONFIG
 
 exec(open(CFGFILE).read())
 
 if WHITE_BACKGROUND:
     YELLOW = 'red'
+
+if USE_ICONS:
+    ICONS = USE_ICONS
+else:
+    ICONS = {
+            'ACTIVE': '*',
+            'STOPPED': '!',
+            'INACTIVE': ' '
+            }
+
+if 'DEBUG' in os.environ:
+    DEBUG = True
+
 
 from io import StringIO
 import subprocess
@@ -217,7 +237,7 @@ class Bug:
             return '#%s'%self.uid
 
         return "%s%s%s #%d%s" % (
-                styled('*', 'bold') if self.started else ' ',
+                styled(ICONS['ACTIVE'], 'bold') if self.started else (ICONS['STOPPED'] if self['timer'] != '' else ICONS['INACTIVE']),
                 styled(str(i).ljust(3), 'bold'),
             styled(self.title, ['standout', YELLOW if self.started else 'blue']),
             self.uid,
