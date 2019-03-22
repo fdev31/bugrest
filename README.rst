@@ -54,6 +54,8 @@ If you don't like this, feel free to edit `br` file and change the following lin
 
     BUGFILE = '/home/john/tickets.rst'
     DONEFILE = '/home/john/done.rst'
+    SOURCE_MGR=False
+
 
 Edit the configuration::
 
