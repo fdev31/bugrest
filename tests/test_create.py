@@ -20,7 +20,7 @@ def test_multi_creation(brpy, nr=10):
 def test_create_and_delete(brpy):
     for n in range(2):
         create_bug("First bug")
-        remove_bug(1)
+        remove_bug(0)
         create_bug("Second bug")
         create_bug("Third bug")
         remove_bug(1)
@@ -42,6 +42,7 @@ def remove_bug(num):
 
 def create_bug(title):
     import br
+    br.Bug.finalize()
     h = get_handler()
     b = br.Bug(title)
     b.original_text = BUG_TEMPLATE

@@ -236,6 +236,10 @@ class Bug:
         r.append(self.text)
         return '\n'.join(r).rstrip('\n')
 
+    @classmethod
+    def finalize(kls):
+        kls.property_rtrans = {v:k for k,v in Bug.property_trans.items()}
+
     @property
     def taglines(self):
         return self.field_line - self.line_start
@@ -334,9 +338,9 @@ class FileHandler:
     def single_priority(self):
         return all(x.priority == 0 for x in self)
 
-    def get(self, nr):
+    def get(self, nr=None):
         notfound_txt = 'Invalid bug id'
-        if not nr:
+        if nr is None:
             raise RuntimeError(notfound_txt)
         if isinstance(nr, str) and not nr.isdigit():
             if nr[0] == '#':
@@ -845,7 +849,7 @@ def main():
                     commands.update(plug_mod.commands)
                     extra_docs[plugin] = [fn.__doc__ for fn in plug_mod.commands.values()]
 
-    Bug.property_rtrans = {v:k for k,v in Bug.property_trans.items()}
+    Bug.finalize()
     fn = commands.get('cmd_' + cmd) # find function matching command
 
     if fn is not None:
