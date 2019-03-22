@@ -42,6 +42,7 @@ On the technical side
 
 - Pure **Python**, no dependency required (Ok... ``docutils``, but misses it ? ;)
 - Simple *one file* design, keeping things short
+  - Simple plugins structure, provided example including some basic JIRA support
 - **No database**, only the ``.rst`` file is used for storage
 
 
