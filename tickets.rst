@@ -1,7 +1,7 @@
 *BugReST* tickets
 =================
 
-:total-count: 16
+:total-count: 17
 
 --------------------------------------------------------------------------------
 
@@ -13,33 +13,6 @@ More tests would be nice
 :priority: 0
 
 There is clearly a defficiency in the coverage
-
---------------------------------------------------------------------------------
-
-JIRA: add support for comments
-==============================
-
-:bugid: 10
-:created: 2017-11-16T00:11:04
-:priority: 0
-
-Syncing JIRA comments would be nice
-
---------------------------------------------------------------------------------
-
-FEATURE: labels
-===============
-
-:bugid: 11
-:created: 2017-11-16T22:56:10
-:priority: 0
-
-One could add ONE label to an issue
-It would group the items as with priorities
-- one can chose between priorities, labels or both in groupping
-- labels are shown aside tags when not used to group
-
-Alternatively, one could name priorities, but sounds more hackish
 
 --------------------------------------------------------------------------------
 
@@ -59,18 +32,6 @@ Two options proposed:
 
 --------------------------------------------------------------------------------
 
-Support some HTML to RST while pulling JIRA bugs
-================================================
-
-:bugid: 13
-:created: 2017-11-16T23:01:32
-:priority: 0
-
-An option could allow html to be stripped
-Another option could be to colorize HTML for better readability
-
---------------------------------------------------------------------------------
-
 Add dropdown to change bugs order in serve view
 ===============================================
 
@@ -80,22 +41,12 @@ Add dropdown to change bugs order in serve view
 
 --------------------------------------------------------------------------------
 
-Allow to extract bugs according to special criteria
-===================================================
+Pomodoro icons support
+======================
 
-:bugid: 15
-:created: 2017-11-16T15:11:35
+:bugid: 17
+:created: 2019-03-22T21:34:10
 :priority: 0
+:started: 2019-03-22T21:34:42
 
-Alternatively a filter could be nice
-
---------------------------------------------------------------------------------
-
-foo
-===
-
-:bugid: 16
-:created: 2017-12-16T02:01:30
-:priority: 0
-
-test
+useful for start & stop command instead of the current "*"
