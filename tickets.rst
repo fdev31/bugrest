@@ -14,6 +14,21 @@ More tests would be nice
 
 There is clearly a defficiency in the coverage
 
+Make some "shell" runs instead of API for the given commands:
+
+- filter
+- grep
+-  (un)tag
+- html
+- (un)set
+
+- serve ?
+
+
+less important / more tested:
+- list
+- show
+
 --------------------------------------------------------------------------------
 
 Batch commands
