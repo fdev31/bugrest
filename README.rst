@@ -105,8 +105,8 @@ List tickets tagged as "feature"::
    br tag feature
    
 
- Advanced usages
-================
+Advanced usages
+===============
 
 Display tickets containing "comm"::
 
