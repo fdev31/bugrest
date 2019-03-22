@@ -9,6 +9,32 @@ for testing purpose only
 
 """
 
+def test_tag_untag(brpy):
+    create_bug('foobar')
+    h = brpy.FileHandler()
+    bug = h.get(0)
+    bug.add_tag('pif')
+    bug.rm_tag('pif')
+    assert 'pif' not in bug.tags
+    print(bug.tags)
+
+def test_delete_started(brpy):
+    create_bug('foobar')
+    h = brpy.FileHandler()
+    bug = h.get(0)
+    h.mark_started(0)
+    h.mark_fixed(0)
+
+def test_stop(brpy):
+    create_bug('foobar')
+    h = brpy.FileHandler()
+    bug = h.get(0)
+    assert bug['started'] == ''
+    h.mark_started(0)
+    assert bug['started'] != ''
+    h.mark_stopped(0)
+    assert bug['timer'] != ''
+    remove_bug(0)
 
 def test_multi_creation(brpy, nr=10):
     for n in range(10):

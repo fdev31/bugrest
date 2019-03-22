@@ -16,4 +16,4 @@ def brpy():
     import br
     yield br
     os.unlink('br.py')
-    os.system('hg revert %s'%br.BUGFILE)
+    os.system('git checkout %s'%br.BUGFILE)
