@@ -8,6 +8,11 @@ See some generated `Bug file`__
 
 __ https://github.com/fdev31/loof/blob/master/bugs.rst
 
+Even though single list management is possible, this tool is intended to be used from many places at a time.
+By default each folder with a SCM repository is candidate to be a storage.
+The idea is to manage a list of topics grouped by folders, which "just works" with your projects under version control.
+In case you are using empty folders you will just need to `git init` or `hg init` once - you may also want to commit from time to time to keep history.
+
 Screenshot
 ==========
 
@@ -50,6 +55,9 @@ If you don't like this, feel free to edit `br` file and change the following lin
     BUGFILE = '/home/john/tickets.rst'
     DONEFILE = '/home/john/done.rst'
 
+Edit the configuration::
+
+   br cfg
 
 List bugs::
 
@@ -86,4 +94,40 @@ Start a web server on port 5555::
 Change priority of item #66 (using ``bugid`` instead of item position)::
 
     br set #66 priority 10
+
+Tag ticket #3 as "feature"::
+
+   br tag #3 feature
+
+
+List tickets tagged as "feature"::
+
+   br tag feature
+   
+
+ Advanced usages
+================
+
+Display tickets containing "comm"::
+
+   br show $(br -q grep comm)
+
+Same with filter::
+
+   br show $(br -q filter 'text=.*comm')
+
+
+Search only the title::
+
+   br show $(br -q filter 'title=.*comm')
+
+any attribute can be used with `filter` (cf **set** command).
+Eg, lising tickets created in 2016::
+
+   br filter created=2016
+
+Mark done/remove the bugs tagged "old"::
+
+   br rm $(br -q tag old)
+
 
