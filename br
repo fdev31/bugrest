@@ -365,6 +365,8 @@ class FileHandler:
         notfound_txt = 'Invalid bug id'
         if nr is None:
             raise RuntimeError(notfound_txt)
+        if isinstance(nr, Bug):
+            return nr
         if isinstance(nr, str) and not nr.isdigit():
             if nr[0] == '#':
                 k = 'bugid'
