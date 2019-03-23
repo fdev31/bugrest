@@ -125,7 +125,7 @@ Search only the title::
    br show $(br -q filter 'title=.*comm')
 
 any attribute can be used with `filter` (cf **set** command).
-Eg, lising tickets created in 2016::
+Eg, listing tickets created in 2016::
 
    br filter created=2016
 
@@ -133,4 +133,11 @@ Mark done/remove the bugs tagged "old"::
 
    br rm $(br -q tag old)
 
+List tickets due today (if a *due* attribute is set)::
+
+   br filter due=$(date -I)
+
+List tickets created this month::
+
+   br filter created=${$(date -I)%-*}
 
