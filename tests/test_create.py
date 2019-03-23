@@ -1,6 +1,5 @@
 import os
 import time
-import subprocess
 
 BUG_TEMPLATE = """
 This is some demo content
