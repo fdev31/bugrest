@@ -549,7 +549,7 @@ def cmd_list(handler):
     if max_bugid == 0 and len(handler) == 0 and verbose:
         print("Nothing to show here!")
     else:
-        nb_fixed = 1+max_bugid-len(handler)
+        nb_fixed = max_bugid-len(handler)
         nb_active = len(handler)
         if verbose:
             print("> Fixed %s bugs, %s active, latest is #%d"%(
