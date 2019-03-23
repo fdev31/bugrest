@@ -98,7 +98,7 @@ USE_PAGER = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
-USE_ICONS = {'ACTIVE': ' ', 'STOPPED': ' ', 'INACTIVE': '  '}
+USE_ICONS = {'ACTIVE': ' ', 'STOPPED': ' ', 'LOOKRIGHT': '»', 'SEPARATOR': ' ❭ ', 'INACTIVE': '  '}
 PLUGINS = []
 
 SAMPLE_CONFIG = '''# betterRest configuration file
@@ -144,6 +144,8 @@ else:
     ICONS = {
             'ACTIVE': '*',
             'STOPPED': '!',
+            'LOOKRIGHT': '>',
+            'SEPRATOR': ', ',
             'INACTIVE': ' '
             }
 
@@ -549,12 +551,15 @@ def cmd_list(handler):
     if max_bugid == 0 and len(handler) == 0 and verbose:
         print("Nothing to show here!")
     else:
-        nb_fixed = max_bugid-len(handler)
+        nb_fixed = max_bugid - len(handler)
         nb_active = len(handler)
         if verbose:
-            print("> Fixed %s bugs, %s active, latest is #%d"%(
+            print("%s Fixed %s bugs%s%s active%slatest is #%d"%(
+                ICONS['LOOKRIGHT'],
                 styled(str(nb_fixed), 'yellow'),
+                ICONS['SEPARATOR'],
                 styled(str(nb_active), 'brown'),
+                ICONS['SEPARATOR'],
                 max_bugid
             ))
 
