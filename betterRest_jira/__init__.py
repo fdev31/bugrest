@@ -198,7 +198,7 @@ def strip_tags(html, max_blank_lines=2):
 
         for line in s.get_data().split('\n'):
             line = line.rstrip()
-            this_is_blank = len(line)
+            this_is_blank = len(line) < 1
             if this_is_blank and blank_count >= max_blank_lines:
                 continue
             clean_text.append(line)
