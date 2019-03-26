@@ -261,6 +261,26 @@ class Bug:
         r.append(self.text)
         return '\n'.join(r).rstrip('\n')
 
+    def get_html(self):
+        from docutils.writers.html4css1 import Writer,HTMLTranslator
+
+        class HTMLFragmentTranslator( HTMLTranslator ):
+            def __init__( self, document ):
+                HTMLTranslator.__init__( self, document )
+                self.head_prefix = ['','','','','']
+                self.body_prefix = []
+                self.body_suffix = []
+                self.stylesheet = []
+
+            def astext(self):
+                return ''.join(self.body)
+
+        html_fragment_writer = Writer()
+        html_fragment_writer.translator_class = HTMLFragmentTranslator
+
+        text = publish_string(self.get_text(), writer=html_fragment_writer).decode('utf-8')
+        return '\n'.join(text.split('\n')[8:-3])
+
     @classmethod
     def finalize(kls):
         kls.property_rtrans = {v:k for k,v in Bug.property_trans.items()}
@@ -669,7 +689,6 @@ def cmd_add(handler, nr=None):
         comment_text.append('    ' + line)
     bug.original_text += '\n\n' + ('\n'.join(comment_text).rstrip())
     handler.save()
-
 
 def cmd_html(handler):
     text = codecs.open(BUGFILE, encoding='utf-8').read()
