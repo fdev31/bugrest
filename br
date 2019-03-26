@@ -426,14 +426,19 @@ class FileHandler:
             indices = [i for i, l in enumerate(text_lines) if l.startswith('------')]
 
             start = 0
-            for i in range(len(document)):
+            nb_docs = len([doc for doc in document if doc.tagname == 'section'])
+
+            for i in range(nb_docs):
                 if i:
                     start = indices[i - 1] + 2
                     title = text_lines[start]
                 else:
-                    title = text_lines[0]
+                    for n, title in enumerate(text_lines):
+                        t = title.strip()
+                        if t and t[0] not in '.:' and title[0] not in ' \t':
+                            break
                 start += 3
-                if i+1 == len(document):
+                if i+1 == nb_docs: # last element
                     stop = len(text_lines) - 1
                 else:
                     stop = indices[i] - 1
