@@ -91,6 +91,7 @@ if ("ontouchstart" in document.documentElement) {
 
 impress().init();
 mermaid.init();
+document.querySelectorAll('pre.code').forEach( (e) => e.innerHTML = `<code>${e.innerHTML}</code>` )
 hljs.initHighlightingOnLoad();
 </script>
 
