@@ -1,6 +1,12 @@
 __all__ = ['commands']
 import os
 
+# Supported special attributes:
+#
+# - notitle
+# - x
+# - y
+
 class CFG:
 
     @classmethod
@@ -9,6 +15,9 @@ class CFG:
 
 def init(*a):
     return
+
+def get_resource(fname):
+    return open(os.path.join(os.path.dirname(__file__), 'static', fname)).read()
 
 def cmd_impress(handler):
     "impress: generate an HTML slideshow (on stdout)"
@@ -24,7 +33,13 @@ def cmd_impress(handler):
     <meta name="author" content="Bartek Szopka" />
 
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
+
     <style>%(css)s</style>
+    <style>%(mermaid)s</style>
+
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+
 
     <link rel="shortcut icon" href="favicon.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -40,21 +55,25 @@ def cmd_impress(handler):
         </div>
     """%{
         'title': handler.info.title,
-        'css': open( os.path.join(os.path.dirname(__file__), 'static', 'impress.css') ).read(),
+        'css': get_resource('impress.css'),
+        'mermaid': get_resource('mermaid.css'),
         }]
 
     for i, bug in enumerate(handler):
         props = {
-                'title': bug.title,
+                'title': '' if 'notitle' in bug.attributes else '<h1>%s</h1>'%bug.title,
                 'html': bug.get_html(),
-                'x': i*2000.
+                'x': bug['x'] or i*2000,
+                'y': bug['y'] or 0,
                 }
+
         text.append('''
-        <div class="step" data-x="%(x)d" data-y="0">
-        <h1>%(title)s</h1>
+<div class="step" data-x="%(x)s" data-y="%(y)s">
+    %(title)s
         %(html)s
-        </div>
+</div>
                 '''%props)
+
     text.append('''
             </div>
 <div id="impress-toolbar"></div>
@@ -66,12 +85,22 @@ def cmd_impress(handler):
 if ("ontouchstart" in document.documentElement) {
     document.querySelector(".hint").innerHTML = "<p>Swipe left or right to navigate</p>";
 }
+
+%(js)s
+%(mermaid)s
+
+impress().init();
+mermaid.init();
+hljs.initHighlightingOnLoad();
 </script>
-<script src="impress.js"></script>
-<script>impress().init();</script>
+
+
 </body>
 </html>
-            ''')
+            '''%{
+                'js': get_resource('impress.js'),
+                'mermaid': get_resource('mermaid.js'),
+                })
     print('\n'.join(text))
 
 commands = {k:v for k,v in globals().items() if k.startswith('cmd_')}
