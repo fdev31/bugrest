@@ -9,7 +9,7 @@ setup(
     author="Fabien Devaux",
     author_email="fdev31@gmail.com",
     license="MIT",
-    packages=['betterRest', 'betterRest_jira', 'betterRest_jira_example'],
+    packages=['betterRest', 'betterRest_jira', 'betterRest_jira_example', 'betterRest_impress'],
     include_package_data=True,
     package_data={'betterRest': ['*.css']},
     description="Awesome minimalist command line ticket/bug tracker based on ReStructuredText (former bugrest)",
