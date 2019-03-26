@@ -279,7 +279,7 @@ class Bug:
         html_fragment_writer.translator_class = HTMLFragmentTranslator
 
         text = publish_string(self.get_text(), writer=html_fragment_writer).decode('utf-8')
-        return '\n'.join(text.split('\n')[8:-3])
+        return '\n'.join(text.split('\n')[5:])
 
     @classmethod
     def finalize(kls):
