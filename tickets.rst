@@ -1,7 +1,7 @@
 *BugReST* tickets
 =================
 
-:total-count: 18
+:total-count: 19
 
 --------------------------------------------------------------------------------
 
@@ -73,3 +73,17 @@ Impress
 
 - Allow setting default class(es) for the slides
 - Allow injecting Rest macros commands / plugins ?
+
+--------------------------------------------------------------------------------
+
+Impress plugin: refactor
+========================
+
+:bugid: 19
+:created: 2019-03-27T23:57:01
+:priority: 0
+
+Use the same system for position & rotation
+
+- would allow standard usage (with keep transforms being the default)
+- also allows "reset" for instance to position the final slide close to the first one
