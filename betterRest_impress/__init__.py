@@ -1,7 +1,8 @@
 __all__ = ['commands']
+
 import os
 
-KEEP_TRANSFORMS = False
+KEEP_TRANSFORMS = True
 
 # Supported special attributes:
 #
@@ -14,6 +15,7 @@ KEEP_TRANSFORMS = False
 # - rot_x
 # - rot_y
 # - scale
+# - rot_reset
 
 SLIDE_TEMPLATE = '''<div class="step %(classes)s" data-rel-x="%(x)s" data-rel-y="%(y)s" data-rel-z="%(z)s"
     data-rotate-x="%(rot_x)s" data-rotate-y="%(rot_y)s" data-rotate-z="%(rot_z)s" data-scale="%(scale)s"
@@ -93,17 +95,27 @@ def cmd_impress(handler):
 
     for i, bug in enumerate(handler):
 
+        if 'rot_reset' in bug.attributes:
+            rotation.update({
+                    'rot_x': 0,
+                    'rot_y': 0,
+                    'rot_z': 0,
+                    })
+
         for k, k2 in ( ('rotate', 'rot_z'), ('rot_x', 'rot_x'), ('rot_y', 'rot_y') ):
             if k in bug.attributes:
-                rotation[k2] = bug[k]
+                rotation[k2] += int(bug[k])
 
         props = {}
 
-        for k, k2 in ( ('rotate', 'rot_z'), ('rot_x', 'rot_x'), ('rot_y', 'rot_y') ):
-            if k in bug.attributes:
-                props[k2] = bug[k]
-            else:
-                props[k2] = rotation[k2] if KEEP_TRANSFORMS else 0
+        if KEEP_TRANSFORMS:
+            props.update(rotation)
+        else:
+            for k, k2 in ( ('rotate', 'rot_z'), ('rot_x', 'rot_x'), ('rot_y', 'rot_y') ):
+                if k in bug.attributes:
+                    props[k2] = bug[k]
+                else:
+                    props[k2] = 0
 
         props['title'] = '' if 'notitle' in bug.attributes else '<h1>%s</h1>'%bug.title
         props['html'] = bug.as_html()
