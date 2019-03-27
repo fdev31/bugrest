@@ -17,6 +17,31 @@ from docutils.frontend import OptionParser
 from docutils.utils import new_document
 from docutils.parsers.rst import Parser
 
+from docutils.writers.html4css1 import HTMLTranslator, Writer
+
+class HTMLFragmentTranslator(HTMLTranslator):
+    def __init__( self, document ):
+        HTMLTranslator.__init__( self, document )
+        self.head_prefix = ['','','','','']
+        self.body_prefix = ['']
+        self.body_suffix = ['']
+        self.stylesheet = ['']
+        self.html_prolog = ['']
+        self.head = ['']
+        self.html_head = ['']
+        self.embed_stylesheet = None
+
+
+html_fragment_writer = Writer()
+html_fragment_writer.translator_class = HTMLFragmentTranslator
+
+def rst2html(rst_text, filtering=None):
+    text = publish_string(rst_text, writer=html_fragment_writer).decode('utf-8')
+    lines = text.split('\n')[7:-2]
+    if filtering:
+        lines = (l for l in lines if filtering(l))
+    return '\n'.join(lines)
+
 # black background:
 YELLOW = 'yellow'
 
@@ -261,9 +286,11 @@ class Bug:
         r.append(self.text)
         return '\n'.join(r).rstrip('\n')
 
-    def get_html(self):
-        text = publish_string(self.get_text(), writer_name='html').decode('utf-8')
-        return '\n'.join(text.split('\n')[5:])
+    def title_as_html(self):
+        return rst2html(self.title)
+
+    def as_html(self):
+        return rst2html(self.get_text())
 
     @classmethod
     def finalize(kls):
