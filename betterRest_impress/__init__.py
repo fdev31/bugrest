@@ -8,6 +8,19 @@ KEEP_TRANSFORMS = False
 # - notitle
 # - x
 # - y
+# - z
+# - class
+# - rotate
+# - rot_x
+# - rot_y
+# - scale
+
+SLIDE_TEMPLATE = '''<div class="step %(classes)s" data-rel-x="%(x)s" data-rel-y="%(y)s" data-rel-z="%(z)s"
+    data-rotate-x="%(rot_x)s" data-rotate-y="%(rot_y)s" data-rotate-z="%(rot_z)s" data-scale="%(scale)s"
+>
+    %(title)s
+        %(html)s
+</div>'''
 
 class CFG:
 
@@ -88,15 +101,9 @@ def cmd_impress(handler):
         props['y'] = bug['y'] or 0
         props['z'] = bug['z'] or 0
         props['scale'] = bug['scale'] or 1
+        props['classes'] = bug['class']
 
-        text.append('''
-<div class="step" data-rel-x="%(x)s" data-rel-y="%(y)s" data-rel-z="%(z)s"
-    data-rotate-x="%(rot_x)s" data-rotate-y="%(rot_y)s" data-rotate-z="%(rot_z)s" data-scale="%(scale)s"
->
-    %(title)s
-        %(html)s
-</div>
-                '''%props)
+        text.append(SLIDE_TEMPLATE%props)
 
     text.append('''
             </div>
