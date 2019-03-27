@@ -262,23 +262,7 @@ class Bug:
         return '\n'.join(r).rstrip('\n')
 
     def get_html(self):
-        from docutils.writers.html4css1 import Writer,HTMLTranslator
-
-        class HTMLFragmentTranslator( HTMLTranslator ):
-            def __init__( self, document ):
-                HTMLTranslator.__init__( self, document )
-                self.head_prefix = ['','','','','']
-                self.body_prefix = []
-                self.body_suffix = []
-                self.stylesheet = []
-
-            def astext(self):
-                return ''.join(self.body)
-
-        html_fragment_writer = Writer()
-        html_fragment_writer.translator_class = HTMLFragmentTranslator
-
-        text = publish_string(self.get_text(), writer=html_fragment_writer).decode('utf-8')
+        text = publish_string(self.get_text(), writer_name='html').decode('utf-8')
         return '\n'.join(text.split('\n')[5:])
 
     @classmethod
