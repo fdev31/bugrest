@@ -141,3 +141,23 @@ List tickets created this month::
 
    br filter created=${$(date -I)%-*}
 
+Plugins
+=======
+
+impress
+-------
+
+generate an html5 presentation from the tickets::
+
+   br impress
+
+generate an html5 presentation from a presentation file following similar format, saving under ``index.html``::
+
+   br presentation.rst impress > index.html
+
+Make the 7 first slides go from right to left::
+
+   for n in $(seq 0 6);
+      do br README.rst set $n x -2000;
+   done
+
