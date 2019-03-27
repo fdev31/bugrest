@@ -1,7 +1,7 @@
 *BugReST* tickets
 =================
 
-:total-count: 17
+:total-count: 18
 
 --------------------------------------------------------------------------------
 
@@ -53,3 +53,23 @@ Add dropdown to change bugs order in serve view
 :bugid: 14
 :created: 2017-11-16T23:02:00
 :priority: 0
+
+--------------------------------------------------------------------------------
+
+Plugins improvement
+===================
+
+:bugid: 18
+:created: 2019-03-27T21:45:09
+:priority: 0
+
+
+Impress
+-------
+
+- Better template / more tests
+- Support custom css & js files
+- Integrate images (base64 ?)
+
+- Allow setting default class(es) for the slides
+- Allow injecting Rest macros commands / plugins ?
