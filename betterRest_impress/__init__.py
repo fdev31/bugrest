@@ -75,11 +75,12 @@ def cmd_impress(handler):
 </div>
 <div id="impress" data-autoplay="%(autoplay)s">
         <div class="step" id="title" data-x="0" data-y="0">
-        <h1>%(title)s</h1>
+        <h1>%(html_title)s</h1>
         </div>
     """%{
         'autoplay': handler.info['autoplay'] or 0,
         'title': handler.info.title,
+        'html_title': handler.info.title_as_html(),
         'css': get_resource('impress.css'),
         'mermaid': get_resource('mermaid.css'),
         }]
@@ -105,7 +106,7 @@ def cmd_impress(handler):
                 props[k2] = rotation[k2] if KEEP_TRANSFORMS else 0
 
         props['title'] = '' if 'notitle' in bug.attributes else '<h1>%s</h1>'%bug.title
-        props['html'] = bug.get_html()
+        props['html'] = bug.as_html()
         props['x'] = bug['x'] or 1600
         props['y'] = bug['y'] or 0
         props['z'] = bug['z'] or 0
