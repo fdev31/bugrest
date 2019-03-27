@@ -600,11 +600,11 @@ body {
 .slide {
     display: block;
 
-    width: 900px;
-    height: 700px;
+    width: 1400px;
+    height: 790px;
     padding: 40px 60px;
 
-    background-image: url(../images/background.png);
+    background-image: url(static/images/background.png);
     background-color: white;
     border: 1px solid rgba(0, 0, 0, .3);
     border-radius: 10px;
@@ -637,7 +637,6 @@ body {
 
 /* Highlight.js used for coloring pre > code blocks. */
 .slide pre > code {
-    font-size: 14px;
     text-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
@@ -730,7 +729,7 @@ img {
 */
 
 .title {
-    background-image: url(../images/background-title.png);    
+    background-image: url(static/images/background-title.png);    
 }
 
 .title h1,
