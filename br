@@ -437,7 +437,11 @@ class FileHandler:
             for i in range(nb_docs):
                 if i:
                     start = indices[i - 1] + 2
-                    title = text_lines[start]
+                    # find the title
+                    for title in text_lines[start:]:
+                        title = title.strip()
+                        if title and title[0] not in ':.':
+                            break
                 else:
                     for n, title in enumerate(text_lines):
                         t = title.strip()
