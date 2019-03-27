@@ -1,6 +1,8 @@
 __all__ = ['commands']
 import os
 
+KEEP_TRANSFORMS = False
+
 # Supported special attributes:
 #
 # - notitle
@@ -49,26 +51,48 @@ def cmd_impress(handler):
     <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
     <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
 </div>
-<div id="impress" data-autoplay="7">
-        <div class="step" id="title" data-x="0" data-y="-1500">
+<div id="impress" data-autoplay="%(autoplay)s">
+        <div class="step" id="title" data-x="0" data-y="0">
         <h1>%(title)s</h1>
         </div>
     """%{
+        'autoplay': handler.info['autoplay'] or 0,
         'title': handler.info.title,
         'css': get_resource('impress.css'),
         'mermaid': get_resource('mermaid.css'),
         }]
 
+    rotation = {
+            'rot_x': 0,
+            'rot_y': 0,
+            'rot_z': 0,
+            }
+
     for i, bug in enumerate(handler):
-        props = {
-                'title': '' if 'notitle' in bug.attributes else '<h1>%s</h1>'%bug.title,
-                'html': bug.get_html(),
-                'x': bug['x'] or i*2000,
-                'y': bug['y'] or 0,
-                }
+
+        for k, k2 in ( ('rotate', 'rot_z'), ('rot_x', 'rot_x'), ('rot_y', 'rot_y') ):
+            if k in bug.attributes:
+                rotation[k2] = bug[k]
+
+        props = {}
+
+        for k, k2 in ( ('rotate', 'rot_z'), ('rot_x', 'rot_x'), ('rot_y', 'rot_y') ):
+            if k in bug.attributes:
+                props[k2] = bug[k]
+            else:
+                props[k2] = rotation[k2] if KEEP_TRANSFORMS else 0
+
+        props['title'] = '' if 'notitle' in bug.attributes else '<h1>%s</h1>'%bug.title
+        props['html'] = bug.get_html()
+        props['x'] = bug['x'] or 1600
+        props['y'] = bug['y'] or 0
+        props['z'] = bug['z'] or 0
+        props['scale'] = bug['scale'] or 1
 
         text.append('''
-<div class="step" data-x="%(x)s" data-y="%(y)s">
+<div class="step" data-rel-x="%(x)s" data-rel-y="%(y)s" data-rel-z="%(z)s"
+    data-rotate-x="%(rot_x)s" data-rotate-y="%(rot_y)s" data-rotate-z="%(rot_z)s" data-scale="%(scale)s"
+>
     %(title)s
         %(html)s
 </div>
@@ -76,16 +100,7 @@ def cmd_impress(handler):
 
     text.append('''
             </div>
-<div id="impress-toolbar"></div>
-<div class="hint">
-    <p>Use a spacebar or arrow keys to navigate. <br/>
-       Press 'P' to launch speaker console.</p>
-</div>
 <script>
-if ("ontouchstart" in document.documentElement) {
-    document.querySelector(".hint").innerHTML = "<p>Swipe left or right to navigate</p>";
-}
-
 %(js)s
 %(mermaid)s
 
@@ -94,7 +109,6 @@ mermaid.init();
 document.querySelectorAll('pre.code').forEach( (e) => e.innerHTML = `<code>${e.innerHTML}</code>` )
 hljs.initHighlightingOnLoad();
 </script>
-
 
 </body>
 </html>
