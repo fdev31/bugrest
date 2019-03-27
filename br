@@ -427,7 +427,9 @@ class FileHandler:
             text = codecs.open(fname, encoding='utf-8').read()
             text_lines = text.split('\n')
             parser.parse(text, document)
-            indices = [i for i, l in enumerate(text_lines) if l.startswith('------')]
+
+            # search for tickets boundaries (-------)
+            indices = [i for i, l in enumerate(text_lines) if l.startswith('------') and (i and not text_lines[i-1].strip())]
 
             start = 0
             nb_docs = len([doc for doc in document if doc.tagname == 'section'])
@@ -449,8 +451,6 @@ class FileHandler:
                 orig_text = text_lines[start:stop]
                 b = Bug(title)
                 b.original_text = '\n'.join(orig_text).strip()
-                if b.original_text.endswith('-----'):
-                    b.original_text = b.original_text.rstrip('-')
                 b.line_start = start
                 b.line_stop = stop
 
