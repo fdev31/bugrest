@@ -817,6 +817,22 @@ def cmd_serve(handler, port=HTTP_PORT):
 
 
 def main():
+    try:
+        cmd = sys.argv[1]
+        if cmd.endswith('.rst'):
+            global BUGFILE, SOURCE_MGR
+            BUGFILE = cmd
+            sys.argv.pop(0)
+            SOURCE_MGR = False # Don't try to find the file
+            # this may fail and be caught by the same except
+            # will provide default arguments but BUGFILE will be set
+            cmd = sys.argv[1]
+    except IndexError:
+        cmd = 'list'
+        args = []
+    else:
+        args = sys.argv[2:]
+
     if SOURCE_MGR: # track .<vcs> files as root if option enabled
         fold = os.path.abspath(os.path.curdir)
         found = None
@@ -838,19 +854,6 @@ def main():
         sys.argv.pop(sys.argv.index('-q'))
         SHORT_DISPLAY = True
 
-    try:
-        cmd = sys.argv[1]
-        if cmd.endswith('.rst'):
-            global BUGFILE
-            BUGFILE = cmd
-            cmd = sys.argv[2]
-            sys.argv.pop(0)
-
-    except IndexError:
-        cmd = 'list'
-        args = []
-    else:
-        args = sys.argv[2:]
 
     handler = FileHandler()
 
