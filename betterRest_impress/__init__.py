@@ -53,6 +53,15 @@ def cmd_impress(handler):
     <style>%(mermaid)s</style>
 
     <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+    <style>
+    .admonition {
+        border: solid 1px #333;
+        padding: 0 1em;
+    }
+    .admonition > .admonition-title {
+        font-weight: bold;
+    }
+    </style>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 
 
