@@ -49,22 +49,15 @@ class CFG:
 
     @classmethod
     def get_css(kls):
-        if kls.css:
-            return open(kls.css).read() + kls.base_css
-        else:
-            return kls.base_css
+        return open_failsilent(kls.css) + kls.base_css
 
     @classmethod
     def get_html(kls):
-        if kls.html:
-            return open(kls.html).read()
-        return ''
+        return open_failsilent(kls.html)
 
     @classmethod
     def get_js(kls):
-        if kls.js:
-            return open(kls.js).read()
-        return ''
+        return open_failsilent(kls.js)
 
     @classmethod
     def update(kls, attrs):
@@ -83,6 +76,11 @@ class CFG:
 
 def init(env):
     CFG.update(env['config'])
+
+def open_failsilent(value):
+    if value:
+        return open(value).read()
+    return ''
 
 def get_resource(fname):
     return open(os.path.join(os.path.dirname(__file__), 'static', fname)).read()
@@ -131,10 +129,10 @@ def cmd_impress(handler):
         'autoplay': handler.info['autoplay'] or 0,
         'duration': slide_duration,
         'title': handler.info.title,
-        'html': CFG.get_html(),
+        'html': CFG.get_html() + open_failsilent(handler.info['html']),
         'html_title': handler.info.title_as_html(),
         'css': get_resource('impress.css'),
-        'custom_css': CFG.get_css(),
+        'custom_css': CFG.get_css() + open_failsilent(handler.info['css']),
         'mermaid': get_resource('mermaid.css'),
         }]
 
@@ -194,7 +192,7 @@ hljs.initHighlightingOnLoad();
 </body>
 </html>
             '''%{
-                'custom_js': CFG.get_js(),
+                'custom_js': CFG.get_js() + open_failsilent(handler.info['js']),
                 'js': get_resource('impress.js') + get_resource('substep.js'),
                 'mermaid': get_resource('mermaid.js'),
                 })
