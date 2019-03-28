@@ -16,6 +16,7 @@ KEEP_TRANSFORMS = True
 # - rot_y
 # - scale
 # - rot_reset
+# - delay
 
 SLIDE_TEMPLATE = '''<div class="step %(classes)s" data-rel-x="%(x)s" data-rel-y="%(y)s" data-rel-z="%(z)s"
 data-rotate-x="%(rot_x)s" data-rotate-y="%(rot_y)s" data-rotate-z="%(rot_z)s" data-scale="%(scale)s"
