@@ -153,7 +153,7 @@ hljs.initHighlightingOnLoad();
 </body>
 </html>
             '''%{
-                'js': get_resource('impress.js'),
+                'js': get_resource('impress.js') + get_resource('substep.js'),
                 'mermaid': get_resource('mermaid.js'),
                 })
     print('\n'.join(text))
