@@ -7,16 +7,19 @@ KEEP_TRANSFORMS = True
 # Supported special attributes:
 #
 # - notitle
-# - x
-# - y
-# - z
-# - class
-# - rotate
-# - rot_x
-# - rot_y
-# - scale
+# - x: position
+# - y: position
+# - z: position
+# - class: name(s) - space separated
+# - rotate: angle (degrees)
+# - rot_x: angle
+# - rot_y: angle
+# - scale: factor
 # - rot_reset
-# - delay
+# - duration: transition duration (ms)
+
+# only on the first slide (for the whole presentation)
+# - autoplay: duration
 
 SLIDE_TEMPLATE = '''<div class="step %(classes)s" data-rel-x="%(x)s" data-rel-y="%(y)s" data-rel-z="%(z)s"
 data-rotate-x="%(rot_x)s" data-rotate-y="%(rot_y)s" data-rotate-z="%(rot_z)s" data-scale="%(scale)s"
@@ -26,6 +29,14 @@ data-transition-duration="%(duration)s" >
 </div>'''
 
 CUSTOM_CSS = '''
+'''
+
+class CFG:
+    css = ''
+    html = ''
+    js = ''
+
+    base_css = '''
 .substep { opacity: 0; }
 .substep.substep-visible { opacity: 1; transition: opacity 1s; }
 .admonition {
@@ -34,17 +45,44 @@ CUSTOM_CSS = '''
 }
 .admonition > .admonition-title {
     font-weight: bold;
-}
-'''
+}'''
 
-class CFG:
+    @classmethod
+    def get_css(kls):
+        if kls.css:
+            return open(kls.css).read() + kls.base_css
+        else:
+            return kls.base_css
+
+    @classmethod
+    def get_html(kls):
+        if kls.html:
+            return open(kls.html).read()
+        return ''
+
+    @classmethod
+    def get_js(kls):
+        if kls.js:
+            return open(kls.js).read()
+        return ''
+
+    @classmethod
+    def update(kls, attrs):
+        for k, v in attrs.items():
+            if k == 'css':
+                setattr(kls, k, v)
+            else:
+                setattr(kls, k, v)
 
     @classmethod
     def asDict(kls):
-        return {}
+        return {'css': kls.css,
+                'html': kls.html,
+                'js': kls.js,
+                }
 
-def init(*a):
-    return
+def init(env):
+    CFG.update(env['config'])
 
 def get_resource(fname):
     return open(os.path.join(os.path.dirname(__file__), 'static', fname)).read()
@@ -84,6 +122,7 @@ def cmd_impress(handler):
     <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
     <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
 </div>
+%(html)s
 <div id="impress" data-autoplay="%(autoplay)s" data-transition-duration="%(duration)s">
         <div class="step" id="title" data-x="0" data-y="0">
         <h1>%(html_title)s</h1>
@@ -92,9 +131,10 @@ def cmd_impress(handler):
         'autoplay': handler.info['autoplay'] or 0,
         'duration': slide_duration,
         'title': handler.info.title,
+        'html': CFG.get_html(),
         'html_title': handler.info.title_as_html(),
         'css': get_resource('impress.css'),
-        'custom_css': CUSTOM_CSS,
+        'custom_css': CFG.get_css(),
         'mermaid': get_resource('mermaid.css'),
         }]
 
@@ -144,7 +184,7 @@ def cmd_impress(handler):
 <script>
 %(js)s
 %(mermaid)s
-
+%(custom_js)s
 impress().init();
 mermaid.init();
 document.querySelectorAll('pre.code').forEach( (e) => e.innerHTML = `<code>${e.innerHTML}</code>` )
@@ -154,6 +194,7 @@ hljs.initHighlightingOnLoad();
 </body>
 </html>
             '''%{
+                'custom_js': CFG.get_js(),
                 'js': get_resource('impress.js') + get_resource('substep.js'),
                 'mermaid': get_resource('mermaid.js'),
                 })
