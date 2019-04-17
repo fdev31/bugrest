@@ -31,6 +31,18 @@ class CFG:
         for k, v in config.items():
             setattr(kls, k, v)
 
+def cmd_jtrans(handler, bugid, new_trans=None):
+    'jtrans: [Jbugid] | list all available transitions for this ticket or set the new state'
+    jira = get_jira_object()
+    bugid = bugid.rstrip('_,')
+    ticket = jira.issue(bugid)
+    if new_trans is None:
+        names = [t['name'] for t in jira.transitions(ticket)]
+        for name in sorted(names):
+            print(name)
+    else:
+        jira.transition_issue(ticket, new_trans)
+        print("%s is now %s"%(bugid, new_trans))
 
 def cmd_jdump(handler, bugid):
     'jdump: [Jbugid] | dumps all low level data on given bug (DEBUG)'
