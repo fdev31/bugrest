@@ -19,6 +19,12 @@ from docutils.parsers.rst import Parser
 
 from docutils.writers.html4css1 import HTMLTranslator, Writer
 
+TEAL='cyan'
+BROWN='yellow'
+YELLOW='brightyellow'
+RED='brightred'
+BLUE='brightblue'
+
 class HTMLFragmentTranslator(HTMLTranslator):
     def __init__( self, document ):
         HTMLTranslator.__init__( self, document )
@@ -43,7 +49,7 @@ def rst2html(rst_text, filtering=None):
     return '\n'.join(lines)
 
 # black background:
-YELLOW = 'yellow'
+YELLOW = YELLOW
 
 try:
     if not sys.stdout.isatty():
@@ -161,7 +167,7 @@ del SAMPLE_CONFIG
 exec(open(CFGFILE).read())
 
 if WHITE_BACKGROUND:
-    YELLOW = 'red'
+    YELLOW = RED
 
 if USE_ICONS:
     ICONS = USE_ICONS
@@ -269,9 +275,9 @@ class Bug:
         return "%s%s%s #%d%s" % (
                 styled(ICONS['ACTIVE'], 'bold') if self.started else (ICONS['STOPPED'] if self['timer'] != '' else ICONS['INACTIVE']),
                 styled(str(i).ljust(3), 'bold'),
-            styled(self.title, ['standout', YELLOW if self.started else 'blue']),
+            styled(self.title, ['standout', YELLOW if self.started else BLUE]),
             self.uid,
-            styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), 'teal'),
+            styled(self['tags'].replace('#', ' ') + ''*(20-len(self['tags'])), TEAL),
             )
 
     def __str__(self):
@@ -596,9 +602,9 @@ def cmd_list(handler):
         if verbose:
             print("%s Fixed %s bugs%s%s active%slatest is #%d"%(
                 ICONS['LOOKRIGHT'],
-                styled(str(nb_fixed), 'yellow'),
+                styled(str(nb_fixed), YELLOW),
                 ICONS['SEPARATOR'],
-                styled(str(nb_active), 'brown'),
+                styled(str(nb_active), BROWN),
                 ICONS['SEPARATOR'],
                 max_bugid
             ))
@@ -756,7 +762,7 @@ def cmd_get(handler, nr, name=None, *args):
         bugs = (handler.get(nr) for bug in nrs)
 
     for bug in sorted(bugs, key=lambda o: (o[name], o.uid)):
-        print("%s: %s # %s %s" % (styled(name, YELLOW), styled(bug[name], 'bold'), bug.title, styled("#%s"%bug.uid, 'teal')))
+        print("%s: %s # %s %s" % (styled(name, YELLOW), styled(bug[name], 'bold'), bug.title, styled("#%s"%bug.uid, TEAL)))
 
 
 def cmd_set(handler, nr, name=None, value=None):
@@ -935,7 +941,7 @@ def main():
                 desc = ' ' + desc
             else:
                 args = ''
-            print("%s %s%s" % (styled("%10s"%name, YELLOW), styled(args, 'blue'), desc))
+            print("%s %s%s" % (styled("%10s"%name, YELLOW), styled(args, BLUE), desc))
 
         print("\nSyntax: %s [filename.rst] [command]\n" % sys.argv[0])
 
