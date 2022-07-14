@@ -11,6 +11,10 @@ html {
       -ms-text-size-adjust: 100%;
 }
 
+table.field-list {
+    display: none;
+}
+
 a:focus {
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
