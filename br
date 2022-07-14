@@ -200,7 +200,7 @@ class Pager:
         text_data = sys.stdout.read().encode('utf-8')
         sys.stdout = self.oldstdout
 
-        p = subprocess.Popen(self.cmd, bufsize=1, stdin=subprocess.PIPE)
+        p = subprocess.Popen(self.cmd, text=False, stdin=subprocess.PIPE)
         p.communicate(text_data)
 
 
