@@ -977,7 +977,7 @@ def main():
                 render_doc(doc)
 
 
-if __name__ == '__main__':
+def commandline():
     if DEBUG:
         main()
         raise SystemExit(0)
@@ -989,3 +989,6 @@ if __name__ == '__main__':
         print(u'ERROR: Argument have incorrect value')
     except TypeError as e:
         print(u'ERROR: %s' % e.args[0].split(' ', 1)[1])
+
+if __name__ == '__main__':
+    commandline()
