@@ -947,7 +947,7 @@ def main():
                 args = ''
             print("%s %s%s" % (styled("%10s"%name, YELLOW), styled(args, BLUE), desc))
 
-        print("\nSyntax: %s [filename.rst] [command]\n" % sys.argv[0])
+        print("\nSyntax: %s [filename.rst] [command]\n" % os.path.basename(sys.argv[0]))
 
         docs = """\
      cfg: edits the configuration file
