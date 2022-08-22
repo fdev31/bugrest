@@ -10,7 +10,7 @@ import pprint
 import re
 import sys
 import tempfile
-import xml.dom.minidom.Document
+from xml.dom.minidom import Document
 
 import docutils
 from docutils.core import publish_string
@@ -27,7 +27,7 @@ BLUE = "brightblue"
 
 
 class HTMLFragmentTranslator(HTMLTranslator):
-    def __init__(self, document: xml.dom.minidom.Document):
+    def __init__(self, document: Document):
         HTMLTranslator.__init__(self, document)
         self.head_prefix = ["", "", "", "", ""]
         self.body_prefix = [""]
@@ -61,11 +61,10 @@ try:
     import pygments.console
 except ImportError:
     # stubs
-    def colorize(txt, *a):
-        list(a)
+    def colorize(txt):
         return txt
 
-    styled = colorize
+    styled = lambda txt, how: colorize
 else:
 
     def colorize(txt):
@@ -140,7 +139,7 @@ USE_ICONS = {
     "SEPARATOR": " ❭ ",
     "INACTIVE": "  ",
 }
-PLUGINS = []
+PLUGINS: list[str] = []
 
 SAMPLE_CONFIG = """# betterRest configuration file
 BUGFILE="%s"
@@ -198,7 +197,7 @@ import subprocess
 from io import StringIO
 
 
-class Pager:
+class RealPager:
     def __init__(self, cmd=["less", "-iFRX"]):
         self.cmd = cmd
 
@@ -206,7 +205,7 @@ class Pager:
         self.oldstdout = sys.stdout
         sys.stdout = StringIO()
 
-    def __exit__(self, *a):
+    def __exit__(self, *_a):
         sys.stdout.seek(0)
         text_data = sys.stdout.read().encode("utf-8")
         sys.stdout = self.oldstdout
@@ -219,12 +218,11 @@ class NullPager:
     def __enter__(self):
         pass
 
-    def __exit__(self, *a):
+    def __exit__(self, *_a):
         pass
 
 
-if not USE_PAGER:
-    Pager = NullPager
+Pager = RealPager if USE_PAGER else NullPager
 
 
 def now(iso=True):
@@ -265,7 +263,7 @@ class Bug:
     field_line = 0
     original_text = ""
     title_char = "="
-    property_trans = {}
+    property_trans: dict[str, str] = {}
 
     def __init__(self, title):
         self.title = title.strip()
