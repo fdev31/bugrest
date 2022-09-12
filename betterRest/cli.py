@@ -64,9 +64,9 @@ except ImportError:
     def colorize(txt):
         return txt
 
-    styled = lambda txt, how: colorize
+    def styled(txt, how):
+        return txt
 else:
-
     def colorize(txt):
         """Colorize *ReStructuredText* for a Terminal
 
@@ -90,7 +90,7 @@ else:
         else:
             mine = how
             how = None
-        return styled(pygments.console.colorize(mine, txt)(), how)
+        return styled(pygments.console.colorize(mine, txt), how)
 
 
 try:
