@@ -74,7 +74,7 @@ else:
         :returns: Colorized string"""
         col_lex = pygments.lexers.get_lexer_by_name("rst")
         col_fmt = pygments.formatters.get_formatter_by_name("terminal")
-        return pygments.highlight(txt, col_lex, col_fmt)()
+        return pygments.highlight(txt, col_lex, col_fmt)
 
     def styled(txt, how):
         """Apply a list of styles to some text
