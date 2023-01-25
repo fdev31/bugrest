@@ -323,7 +323,7 @@ class Bug:
     def get_text(self):
         return "\n".join(self.original_text.split("\n")[self.taglines + 1 :])  # +1 to ignore blank separator line
 
-    def set_text(self, val):
+    def set_text(self, val: list[str]):
         if not isinstance(val, (list, tuple)):
             val = val.split("\n")
 
@@ -402,7 +402,7 @@ class FileHandler:
     def __init__(self):
         self.bugs = []
         self.fixed_bugs = []
-        self.info = None
+        self.info : Bug|None = None
         self.bugs_text = []
         self.mixed_priorities = False
         self.load()
