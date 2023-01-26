@@ -20,10 +20,9 @@ from docutils.utils import new_document
 from docutils.writers.html4css1 import HTMLTranslator, Writer
 
 TEAL = "cyan"
-BROWN = "yellow"
-YELLOW = "brightyellow"
-RED = "brightred"
-BLUE = "brightblue"
+YELLOW = "yellow"
+RED = "red"
+BLUE = "blue"
 
 
 class HTMLFragmentTranslator(HTMLTranslator):
@@ -628,7 +627,7 @@ def cmd_list(handler):
                     ICONS["LOOKRIGHT"],
                     styled(str(nb_fixed), YELLOW),
                     ICONS["SEPARATOR"],
-                    styled(str(nb_active), BROWN),
+                    styled(str(nb_active), [YELLOW, 'bold']),
                     ICONS["SEPARATOR"],
                     max_bugid,
                 )
