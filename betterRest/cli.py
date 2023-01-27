@@ -622,7 +622,7 @@ def cmd_list(handler):
         nb_active = len(handler)
         if verbose:
             print(
-                "%s Fixed %s bugs%s%s active%slatest is #%d"
+                "%s %s closed%s%s active%slatest is #%d"
                 % (
                     ICONS["LOOKRIGHT"],
                     styled(str(nb_fixed), YELLOW),
