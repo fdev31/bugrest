@@ -394,7 +394,7 @@ class Visitor(docutils.nodes.GenericNodeVisitor):
     def default_visit(self, node):
         if DEBUG:
             print("=", node.tagname)
-            print("[[%s]]" % node.rawsource)
+            print("[[%s]]" % node.source)
 
 
 class FileHandler:
