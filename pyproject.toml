@@ -6,7 +6,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "betterRest"
-version = "1.0.0"
+version = "1.1.2"
 description = "Awesome minimalist command line ticket/bug tracker based on ReStructuredText (former bugrest)"
 authors = [ "fdev31 <fdev31@gmail.com>" ]
 license = "MIT"
@@ -38,13 +38,13 @@ packages = [
 br = 'betterRest.cli:commandline'
 
 [tool.poetry.dependencies]
-docutils = ">= 0.12"
-python = ">=3.8"
+docutils = "^0.19" # ~0.12
+python = "^3.10.10" # ~3.8
 
-python-dateutil = {version="^2.8.2", optional=true}
-jira = {version="^3.1.1", optional=true}
-six = {version="^1.16", optional=true}
-pygments = {version="^2.12.0", optional=true}
+python-dateutil = {version="^2.8.2", optional=true} # ~2.8.2
+jira = {version="^3.1.1", optional=true} # Not found
+six = {version="^1.16.0", optional=true} # ~1.16
+pygments = {version="^2.14.0", optional=true} # ~2.12.0
 
 [tool.poetry.extras]
 jira = ["jira", "six"]
