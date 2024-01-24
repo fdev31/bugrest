@@ -1,5 +1,5 @@
-BetterRest
-##########
+BugRest
+#######
 
 Friendly and very light weight tool to keep track of list of things.
 Designed with bugs/tickets/GTD in mind
