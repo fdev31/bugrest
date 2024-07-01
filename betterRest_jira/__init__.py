@@ -35,7 +35,7 @@ class CFG:
 
 
 def cmd_jtrans(handler, bugid, new_trans=None):
-    "jtrans: [Jbugid] | list all available transitions for this ticket or set the new state"
+    "jtrans: [Jbugid] transition? | list all available transitions for this ticket or set the new state"
     jira = get_jira_object()
     bugid = bugid.rstrip("_,")
     ticket = jira.issue(bugid)
@@ -43,6 +43,7 @@ def cmd_jtrans(handler, bugid, new_trans=None):
         names = [t["name"] for t in jira.transitions(ticket)]
         for name in sorted(names):
             print(name)
+        return names
     else:
         jira.transition_issue(ticket, new_trans)
         print("%s is now %s" % (bugid, new_trans))
