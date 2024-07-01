@@ -1,7 +1,7 @@
 #!/bin/env python
 # -*- encoding: utf-8 -*-
 
-" A simple command-line ticket tracker "
+"A simple command-line ticket tracker"
 
 import codecs
 import datetime
@@ -65,7 +65,9 @@ except ImportError:
 
     def styled(txt, how):
         return txt
+
 else:
+
     def colorize(txt):
         """Colorize *ReStructuredText* for a Terminal
 
@@ -168,6 +170,7 @@ USE_ICONS=%r
     USE_ICONS,
 )
 
+print(CFGFILE)
 if not os.path.exists(CFGFILE):
     open(CFGFILE, "w").write(SAMPLE_CONFIG)
 del SAMPLE_CONFIG
@@ -184,7 +187,7 @@ else:
         "ACTIVE": "*",
         "STOPPED": "!",
         "LOOKRIGHT": ">",
-        "SEPRATOR": ", ",
+        "SEPARATOR": ", ",
         "INACTIVE": " ",
     }
 
@@ -279,14 +282,15 @@ class Bug:
         return "started" in self.attributes
 
     def string_as_list(self, i):
-
         if SHORT_DISPLAY:
             return "#%s" % self.uid
 
         return "%s%s%s #%d%s" % (
-            styled(ICONS["ACTIVE"], "bold")
-            if self.started
-            else (ICONS["STOPPED"] if self["timer"] != "" else ICONS["INACTIVE"]),
+            (
+                styled(ICONS["ACTIVE"], "bold")
+                if self.started
+                else (ICONS["STOPPED"] if self["timer"] != "" else ICONS["INACTIVE"])
+            ),
             styled(str(i).ljust(3), "bold"),
             styled(self.title, ["standout", YELLOW if self.started else BLUE]),
             self.uid,
@@ -367,7 +371,6 @@ class Bug:
 
 
 class Visitor(docutils.nodes.GenericNodeVisitor):
-
     default_departure = None
 
     def __init__(self, doc, bugs):
@@ -401,7 +404,7 @@ class FileHandler:
     def __init__(self):
         self.bugs = []
         self.fixed_bugs = []
-        self.info : Bug|None = None
+        self.info: Bug | None = None
         self.bugs_text = []
         self.mixed_priorities = False
         self.load()
@@ -627,7 +630,7 @@ def cmd_list(handler):
                     ICONS["LOOKRIGHT"],
                     styled(str(nb_fixed), YELLOW),
                     ICONS["SEPARATOR"],
-                    styled(str(nb_active), [YELLOW, 'bold']),
+                    styled(str(nb_active), [YELLOW, "bold"]),
                     ICONS["SEPARATOR"],
                     max_bugid,
                 )
@@ -843,7 +846,6 @@ def cmd_serve(handler, port=HTTP_PORT):
 
     class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         def do_GET(self):
-
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
