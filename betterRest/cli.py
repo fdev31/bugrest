@@ -116,8 +116,12 @@ if not os.path.exists(JSCODEFILE):
 
     import betterRest
 
-    shutil.copy(os.path.join(os.path.dirname(betterRest.__file__), "style.css"), STYLEFILE)
-    shutil.copy(os.path.join(os.path.dirname(betterRest.__file__), "code.js"), JSCODEFILE)
+    shutil.copy(
+        os.path.join(os.path.dirname(betterRest.__file__), "style.css"), STYLEFILE
+    )
+    shutil.copy(
+        os.path.join(os.path.dirname(betterRest.__file__), "code.js"), JSCODEFILE
+    )
 
 CFGFILE = os.path.join(CFGDIR, "config.py")
 
@@ -170,7 +174,6 @@ USE_ICONS=%r
     USE_ICONS,
 )
 
-print(CFGFILE)
 if not os.path.exists(CFGFILE):
     open(CFGFILE, "w").write(SAMPLE_CONFIG)
 del SAMPLE_CONFIG
@@ -294,7 +297,9 @@ class Bug:
             styled(str(i).ljust(3), "bold"),
             styled(self.title, ["standout", YELLOW if self.started else BLUE]),
             self.uid,
-            styled(self["tags"].replace("#", " ") + "" * (20 - len(self["tags"])), TEAL),
+            styled(
+                self["tags"].replace("#", " ") + "" * (20 - len(self["tags"])), TEAL
+            ),
         )
 
     def __str__(self):
@@ -324,14 +329,18 @@ class Bug:
         return self.field_line - self.line_start
 
     def get_text(self):
-        return "\n".join(self.original_text.split("\n")[self.taglines + 1 :])  # +1 to ignore blank separator line
+        return "\n".join(
+            self.original_text.split("\n")[self.taglines + 1 :]
+        )  # +1 to ignore blank separator line
 
     def set_text(self, val: list[str]):
         if not isinstance(val, (list, tuple)):
             val = val.split("\n")
 
         tag_lines = self.original_text.split("\n")[: self.taglines]
-        self.original_text = "\n".join(tag_lines + [""] + val)  # [''] to add blank line separator
+        self.original_text = "\n".join(
+            tag_lines + [""] + val
+        )  # [''] to add blank line separator
 
     text = property(get_text, set_text)
 
@@ -478,7 +487,9 @@ class FileHandler:
 
             # search for tickets boundaries (-------)
             indices = [
-                i for i, l in enumerate(text_lines) if l.startswith("------") and (i and not text_lines[i - 1].strip())
+                i
+                for i, l in enumerate(text_lines)
+                if l.startswith("------") and (i and not text_lines[i - 1].strip())
             ]
 
             start = 0
@@ -968,9 +979,14 @@ def main():
                     plug_mod.Bug = Bug
                     plug_mod.plugins = shared_plugins
                     plug_mod.all_commands = commands
-                    plug_mod.init({"config": g[entry_name] if default_conf else default_conf})
+                    plug_mod.init(
+                        {"config": g[entry_name] if default_conf else default_conf}
+                    )
                 except Exception as e:
-                    print('Plugin "%s" failed to load: %s\nYou may need to update %s' % (plugin, e, CFGFILE))
+                    print(
+                        'Plugin "%s" failed to load: %s\nYou may need to update %s'
+                        % (plugin, e, CFGFILE)
+                    )
                     print("Details here:\n%s" % ("=" * 80))
                     raise
                 else:
@@ -984,12 +1000,16 @@ def main():
                                 % (
                                     conflict[4:],
                                     plugin,
-                                    commands[conflict].__code__.co_filename.rsplit(os.path.sep, 2)[1],
+                                    commands[conflict].__code__.co_filename.rsplit(
+                                        os.path.sep, 2
+                                    )[1],
                                 )
                             )
 
                     commands.update(plug_mod.commands)
-                    extra_docs[plugin] = [fn.__doc__ for fn in plug_mod.commands.values()]
+                    extra_docs[plugin] = [
+                        fn.__doc__ for fn in plug_mod.commands.values()
+                    ]
 
     Bug.finalize()
     fn = commands.get("cmd_" + cmd)  # find function matching command
