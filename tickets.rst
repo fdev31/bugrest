@@ -1,7 +1,7 @@
 *BugReST* tickets
 =================
 
-:total-count: 19
+:total-count: 20
 
 --------------------------------------------------------------------------------
 
@@ -11,6 +11,7 @@ More tests would be nice
 :bugid: 9
 :created: 2017-05-05T21:20:33
 :priority: 0
+:x: -2000
 
 There is clearly a defficiency in the coverage
 
@@ -26,6 +27,7 @@ Make some "shell" runs instead of API for the given commands:
 
 
 less important / more tested:
+
 - list
 - show
 
@@ -37,6 +39,7 @@ Batch commands
 :bugid: 12
 :created: 2017-11-16T23:00:05
 :priority: 0
+:x: -2000
 
 One should be able to pass a list of bugids for any command
 Two options proposed:
@@ -53,6 +56,7 @@ Add dropdown to change bugs order in serve view
 :bugid: 14
 :created: 2017-11-16T23:02:00
 :priority: 0
+:x: -2000
 
 --------------------------------------------------------------------------------
 
@@ -62,6 +66,7 @@ Plugins improvement
 :bugid: 18
 :created: 2019-03-27T21:45:09
 :priority: 0
+:x: -2000
 
 
 Impress
@@ -82,8 +87,22 @@ Impress plugin: refactor
 :bugid: 19
 :created: 2019-03-27T23:57:01
 :priority: 0
+:x: -2000
 
 Use the same system for position & rotation
 
 - would allow standard usage (with keep transforms being the default)
 - also allows "reset" for instance to position the final slide close to the first one
+
+--------------------------------------------------------------------------------
+
+Allow set to have a list of tickets
+===================================
+
+:bugid: 20
+:created: 2024-02-14T00:09:56
+:priority: 2
+:x: -2000
+
+Make the following command work::
+  br set $(br filter priority=0 -q) priority 10

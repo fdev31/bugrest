@@ -42,9 +42,9 @@ On the technical side
 
 - Pure **Python**, no dependency required (Ok... ``docutils``, but misses it ? ;)
 - Simple *one file* design, keeping things short
-* Supports plugins, provided examples:
-   * Jira interaction
-   * Impress output (interactive slides)
+- Supports plugins, provided examples:
+   - Jira interaction
+   - Impress output (interactive slides)
 - **No database**, only the ``.rst`` file is used for storage
 
 Usage
