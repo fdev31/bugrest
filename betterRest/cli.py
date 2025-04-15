@@ -980,7 +980,7 @@ def main():
                     plug_mod.plugins = shared_plugins
                     plug_mod.all_commands = commands
                     plug_mod.init(
-                        {"config": g[entry_name] if default_conf else default_conf}
+                        {"config": g[entry_name] if entry_name in g else default_conf}
                     )
                 except Exception as e:
                     print(
