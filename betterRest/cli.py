@@ -138,9 +138,9 @@ TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
 USE_ICONS = {
-    "ACTIVE": " ",
-    "STOPPED": " ",
-    "LOOKRIGHT": "»",
+    "ACTIVE": " ",
+    "STOPPED": " ",
+    "LOOKRIGHT": "⇰ ",
     "SEPARATOR": " ❭ ",
     "INACTIVE": "  ",
 }
@@ -969,7 +969,7 @@ def main():
             g = globals()
             entry_name = "PLUGIN_" + plugin
             default_conf = plug_mod.CFG.asDict()
-            if not entry_name in g and default_conf:
+            if entry_name not in g and default_conf:
                 print(
                     "%s is not configured, consider adding to your %s similar snippet:\n%s = %s"
                     % (plugin, CFGFILE, entry_name, pprint.pformat(default_conf))
@@ -1070,7 +1070,7 @@ def commandline():
         main()
     except RuntimeError as e:
         print("ERROR: " + " ".join(e.args))
-    except ValueError as e:
+    except ValueError:
         print("ERROR: Argument have incorrect value")
     except TypeError as e:
         print("ERROR: %s" % e.args[0].split(" ", 1)[1])
