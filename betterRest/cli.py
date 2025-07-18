@@ -134,16 +134,28 @@ DONEFILE = "done.rst"
 DEBUG = False
 SOURCE_MGR = True
 USE_PAGER = True
+USE_NERDFONT = True
 TIMER_ATOM = 3600  # number of seconds to add "1" to timer, defaults to 1h
 WHITE_BACKGROUND = False
 SHORT_DISPLAY = False
-USE_ICONS = {
-    "ACTIVE": " ",
-    "STOPPED": " ",
-    "LOOKRIGHT": "⇰ ",
-    "SEPARATOR": " ❭ ",
-    "INACTIVE": "  ",
-}
+USE_ICONS = (
+    {
+        "ACTIVE": "⭐",
+        "STOPPED": "⏸️",
+        "LOOKRIGHT": "🚀",
+        "SEPARATOR": " ❭ ",
+        "INACTIVE": "  ",
+    }
+    if USE_NERDFONT
+    else {
+        "ACTIVE": " ",
+        "STOPPED": " ",
+        "LOOKRIGHT": "⇰ ",
+        "SEPARATOR": " ❭ ",
+        "INACTIVE": "  ",
+    }
+)
+
 PLUGINS: list[str] = []
 
 SAMPLE_CONFIG = """# betterRest configuration file
@@ -153,6 +165,7 @@ DEBUG=%s
 SOURCE_MGR=%s
 REVERSE_ORDER=%s
 USE_PAGER=%s
+USE_NERDFONT=%s
 HTTP_PORT=%s
 CSS="%s"
 JS="%s"
@@ -166,6 +179,7 @@ USE_ICONS=%r
     SOURCE_MGR,
     REVERSE_ORDER,
     USE_PAGER,
+    USE_NERDFONT,
     HTTP_PORT,
     STYLEFILE,
     JSCODEFILE,
